@@ -1,0 +1,601 @@
+import {
+  Ban,
+  CalendarDays,
+  Edit,
+  Eye,
+  FileX2,
+  Filter,
+  Info,
+  PhoneCall,
+  Plus,
+  Trash2,
+  UserCheck,
+} from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
+import { MoreVertical } from "lucide-react";
+import DatePicker from "react-datepicker";
+import { FaCaretDown } from "react-icons/fa";
+import { CustomScrollbar } from "../components/layout/CustomScrollbar";
+import { Link, useNavigate } from "react-router-dom";
+import { axiosInstance } from "../lib/authInstances";
+import { BiDuplicate } from "react-icons/bi";
+import JobFilter from "../components/Filter/JobFilter";
+import JobEmployerFilter from "../components/Filter/JobEmployerFilter";
+import { convertIdToFourDigits, formatDate } from "../lib/utils";
+
+interface Break {
+  duration: string;
+  status: "paid" | "unpaid";
+}
+
+interface Time {
+  startTime: string;
+  endTime: string;
+}
+
+interface Shift {
+  id: string;
+  time: Time[];
+  breaks: Break[];
+}
+
+interface JobRow {
+  role: string;
+  jobId: string;
+  date: string;
+  numberOfShifts: number;
+  shifts: Shift[];
+  employer: string;
+  outlet: {
+    name: string;
+    location: string;
+  };
+  vacancyUsers: string;
+  standbyUsers: string;
+  totalWage: number;
+  status: "Active" | "Upcoming" | "Cancelled" | "Completed";
+}
+
+
+
+const JobManagement = () => {
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const [queryParams, setQueryParams] = useState({
+    search: "",
+    status: "",
+    location: "",
+    page: 1,
+    limit: 10,
+  });
+  const [allData, setAllData] = useState({});
+  const [isPopupOpen, setIsPopupOpen] = useState<number | null>(null);
+  const [jobsData, setJobsData] = useState([]);
+  const [startDate, setStartDate] = useState(new Date("2024-01-01"));
+  const [endDate, setEndDate] = useState(new Date("2024-12-31"));
+  const [isLimitPopupOpen, setIsLimitPopupOpen] = useState(false);
+  const [isEmployerPopupOpen, setIsEmployerPopupOpen] = useState(false);
+  const [activeJobs, setActiveJobs] = useState(0);
+  const [upcomingJobs, setUpcomingJobs] = useState(0);
+  const [cancelledJobs, setCancelledJobs] = useState(0);
+  const [attendanceRate, setAttendanceRate] = useState(0);
+
+
+  const popupRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        popupRef.current &&
+        !popupRef.current.contains(event.target as Node)
+      ) {
+        setIsLimitPopupOpen(false);
+        setIsEmployerPopupOpen(false);
+      }
+    };
+
+    if (isLimitPopupOpen || isEmployerPopupOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isLimitPopupOpen, isEmployerPopupOpen]);
+
+  const CustomInput = React.forwardRef(({ value, onClick, label }, ref) => (
+    <div
+      className="flex items-center gap-2 px-4 py-2 border border-[#d9d9d9] rounded-xl bg-white cursor-pointer "
+      onClick={onClick}
+      ref={ref}
+    >
+      <CalendarDays className="text-[#048be1]" />
+      <span className="text-sm text-[#000000] font-normal">
+        {value || label}
+      </span>
+    </div>
+  ));
+
+  const navigate = useNavigate();
+
+  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "Active":
+        return "bg-[#E5FFF6] text-green-600";
+      case "Ongoing":
+        return "bg-[#FFF4E8] text-[#D37700]";
+      case "Cancelled":
+        return "bg-[#FFF0ED] text-[#E34E30]";
+      case "Completed":
+        return "bg-[#E0F0FF] text-[#0099FF]";
+      default:
+        return "bg-gray-100 text-gray-600";
+    }
+  };
+
+ 
+
+  const getBorderColor = (status: string) => {
+    switch (status) {
+      case "Active":
+        return "border-l-4 border-l-green-500";
+      case "Ongoing":
+        return "border-l-4 border-l-[#D37700]";
+      case "Cancelled":
+        return "border-l-4 border-l-[#E34E30]";
+      case "Completed":
+        return "border-l-4 border-l-[#0099FF]";
+      default:
+        return "border-l-4 border-l-transparent";
+    }
+  };
+
+  const getBreakColor = (status: string) => {
+    return status === "Paid"
+      ? "bg-[#E5FFF6] text-[#049609]"
+      : "bg-[#FFF0ED] text-[#E34E30]";
+  };
+
+  const fetchJobDetails = async (params) => {
+    const queryString = new URLSearchParams(params).toString();
+    
+    try {
+      const response = await axiosInstance.get(`/jobs?${queryString}`);
+      
+      console.log("API Response:", response.data); // ✅ Check if data is fetched
+  
+      if (response.data?.jobs) {
+        console.log("Setting Jobs Data:", response.data.jobs); // ✅ Verify before updating state
+        setJobsData(response.data.jobs); // ✅ Set the job data
+      } else {
+        console.warn("No jobs found in response");
+        setJobsData([]); // Set empty array to prevent UI crash
+      }
+    } catch (error) {
+      console.error("Error fetching job details:", error);
+    }
+  };
+  
+
+  const updateJobStatus = async (jobId, status) => {
+    try {
+      await axiosInstance.put(`/jobs/${jobId}`, { status });
+      console.log(`Job ${jobId} status updated to ${status}`);
+    } catch (error) {
+      console.error(`Failed to update job ${jobId} status:`, error);
+    }
+  };
+
+  console.log(jobsData);
+  useEffect(() => {
+    fetchJobDetails(queryParams);
+  }, [queryParams]);
+
+  const handlePopupToggle = (index: number) => {
+    setIsPopupOpen(isPopupOpen === index ? null : index);
+  };
+
+  const handleActionClick = (action: string, id: number) => {
+    
+    // alert(`Action: ${action}, Row: ${index}`);
+    if (action === "View") {
+      navigate(`/jobs/${id}`);
+    }
+    if(action==="Modify"){
+      navigate(`/jobs/${id}/modify`)
+    }
+    if(action ==="Cancel Job"){
+      axiosInstance
+            .delete(`/jobs/${id}`)
+            .then((response) => {
+              console.log('Job deleted');
+              
+              fetchJobDetails(queryParams);
+               // Assign the jobs array or an empty array
+            })
+            .catch((error) => {
+              console.error("Error fetching job details:", error);
+            });
+    }
+    setIsPopupOpen(null);
+  };
+
+  useEffect(() => {
+    
+    const calculateStats = () => {
+      if (jobsData && jobsData.length > 0) {
+        const active = jobsData.filter((job) => job.status === "Active").length;
+        const upcoming = jobsData.filter((job) => job.status === "Ongoing").length;
+  
+        setActiveJobs(active);
+        setUpcomingJobs(upcoming);
+  
+        // Calculate average attendance rate
+        const totalAttendance = jobsData.reduce((acc, job) => acc + (job.attendanceRate || 0), 0);
+        const avgAttendance = jobsData.length > 0 ? totalAttendance / jobsData.length : 0;
+        setAttendanceRate(avgAttendance.toFixed(2)); // Round to 2 decimal places
+      }
+    };
+  
+    calculateStats();
+  }, [jobsData]);
+
+   
+
+  return (
+    <div className="p-5 max-w-7xl mx-auto font-sans">
+      {/* Jobs Section */}
+      <div>
+        <div className="flex items-center justify-between gap-4 mb-6">
+          <h1 className="text-[36px] font-[500] text-[#1F2937]">Jobs</h1>
+
+          <div className="flex items-center gap-6 ">
+            <div className="flex items-center gap-4">
+              <div>
+                <label className="block text-[14px] leading-[20px] font-medium text-[#636363] mb-1">
+                  Start Date
+                </label>
+                <DatePicker
+                  selected={startDate}
+                  onChange={(date) => setStartDate(date)}
+                  dateFormat="d MMMM, yyyy"
+                  customInput={<CustomInput label="Select Start Date" />}
+                />
+              </div>
+              <div>
+                <label className="block text-[14px] leading-[20px] font-medium text-[#636363] mb-1">
+                  End Date
+                </label>
+                <DatePicker
+                  selected={endDate}
+                  onChange={(date) => setEndDate(date)}
+                  dateFormat="d MMMM, yyyy"
+                  customInput={<CustomInput label="Select End Date" />}
+                />
+              </div>
+            </div>
+            <Link to="/jobs/create-job">
+              <button className="p-[14px] rounded-[26px] shadow-lg bg-[#FFFFFF] hover:bg-gray-50 ">
+                <Plus className="w-[24px] h-[24px]" />
+              </button>
+            </Link>
+            <div>
+              <div className="flex items-center justify-end gap-4">
+                <button
+                  className="p-[14px] rounded-[26px] shadow-lg bg-dark hover:bg-slate-950 "
+                  onClick={() => setIsLimitPopupOpen(!isLimitPopupOpen)}
+                >
+                  <Filter
+                    className="w-[20px] h-[20px]"
+                    color="#FFFFFF"
+                    fill="#ffffff"
+                  />
+                </button>
+
+                {isLimitPopupOpen && (
+                  <div
+                    ref={popupRef}
+                    className="absolute right-[16%] top-[12%] mt-2 bg-white border rounded-[20px] shadow-lg z-50"
+                  >
+                    <JobFilter />
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Stats Cards */}
+        <div
+          className=" grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8 rounded-[30px] bg-white py-12 px-4"
+          style={{ boxShadow: "0px 9px 20px 9px rgba(0, 0, 0, 0.09)" }}
+        >
+          <div className="rounded-lg flex flex-col items-center">
+        <h2 className="text-[48px] leading-[60px] font-medium text-[#049609]">{activeJobs}</h2>
+        <p className="text-[20px] leading-[25px] font-medium text-[#4c4c4c]">Total Active Jobs</p>
+      </div>
+      <div className="rounded-lg flex flex-col items-center">
+        <h2 className="text-[48px] leading-[60px] font-medium text-[#e39127]">{upcomingJobs}</h2>
+        <p className="text-[20px] leading-[25px] font-medium text-[#4c4c4c]">Upcoming Jobs</p>
+      </div>
+      <div className="rounded-lg flex flex-col items-center">
+        <h2 className="text-[48px] leading-[60px] font-medium text-[#fd5426]">{cancelledJobs}</h2>
+        <p className="text-[20px] leading-[25px] font-medium text-[#4c4c4c]">Cancelled Jobs</p>
+      </div>
+      <div className="rounded-lg flex flex-col items-center">
+        <h2 className="text-[48px] leading-[60px] font-medium text-[#0099ff]">{attendanceRate}%</h2>
+        <p className="text-[20px] leading-[25px] font-medium text-[#4c4c4c]">Average Attendance Rate</p>
+      </div>
+        </div>
+
+        {/* Job Types Filter */}
+        <div className="flex gap-6 mb-6 text-sm bg-[#f3f3f3] justify-between items-center rounded-2xl py-4 px-8">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
+              <p className="w-[6px] h-8  bg-green-500 "></p>
+              <p className="text-[20px] leading-[24px] font-medium ">
+                High Demand Jobs
+              </p>
+            </div>
+            <Info className="w- h-8 cursor-pointer" />
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
+              <p className="w-[6px] h-8  bg-orange-500 "></p>
+              <p className="text-[20px] leading-[24px] font-medium ">
+                Moderate Demand Jobs
+              </p>
+            </div>
+            <Info className="w- h-8 cursor-pointer" />
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
+              <p className="w-[6px] h-8 bg-red-500 "></p>
+              <p className="text-[20px] leading-[24px] font-medium ">
+                High No Show Jobs
+              </p>
+            </div>
+            <Info className="w- h-8 cursor-pointer" />
+          </div>
+        </div>
+
+        {/*Filter */}
+        <div className="flex items-center justify-between py-2">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-4 bg-black text-white px-4 py-2 rounded-xl cursor-pointer">
+              <p>Select Employer</p>
+              <div>
+                <div className="flex items-center justify-end gap-4">
+                <button
+                  className="rounded-[26px] shadow-lg bg-dark hover:bg-slate-950 "
+                  onClick={() => setIsEmployerPopupOpen(!isEmployerPopupOpen)}
+                >
+                  <FaCaretDown />
+                  </button>
+
+                  {isEmployerPopupOpen && (
+                  <div
+                    ref={popupRef}
+                    className="absolute left-[1%] top-[18%] mt-2  bg-white border rounded-[20px] shadow-lg z-50"
+                  >
+                    <JobEmployerFilter/>
+                  </div>
+                )}
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-4 bg-white text-black border border-black px-4 py-2 rounded-xl cursor-pointer">
+              <p>Most Recent Required</p>
+              <FaCaretDown />
+            </div>
+          </div>
+          <div className="flex items-center gap-4 bg-white text-black border border-black px-4 py-2 rounded-xl cursor-pointer">
+            <p>All</p>
+            <FaCaretDown />
+          </div>
+        </div>
+
+        {/* Jobs Table */}
+        <div
+          ref={scrollContainerRef}
+          className="w-full overflow-x-auto no-scrollbar"
+        >
+          <table className="table-auto w-full border-collapse relative h-48">
+            <thead>
+              <tr className="bg-[#EDF8FF] ">
+                <th className="p-4 text-center text-sm truncate font-medium text-gray-500 whitespace-nowrap rounded-l-full">
+                  Job Roles
+                </th>
+                <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
+                  Date
+                </th>
+                <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
+                  Number of shifts
+                </th>
+                <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
+                  Shift Timings
+                </th>
+                <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
+                  Shift ID
+                </th>
+                <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
+                  Employer
+                </th>
+                <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
+                  Outlet
+                </th>
+                <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
+                  Breaks
+                </th>
+                <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
+                  Total Duration
+                </th>
+                <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
+                  Vacancy Users
+                </th>
+                <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
+                  Standby Users
+                </th>
+                <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
+                  Total wage
+                </th>
+                <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
+                  Job Status
+                </th>
+                <th className="p-4 text-center"></th>
+              </tr>
+            </thead>
+            <tbody>
+  {jobsData.length > 0 ? (
+    jobsData.map((row, index) => (
+      <tr key={row._id || index} className="border-b border-gray-300">
+        {/* Job Name & ID */}
+        <td className="p-4 text-left truncate border-l border-gray-300">
+          <div className={`${getBorderColor(row.jobStatus)} pl-2`}>
+            <div className="font-medium">{row.jobName || "N/A"}</div>
+            <div className="text-sm text-gray-500">
+              Job Id: #{convertIdToFourDigits(row._id)}
+            </div>
+          </div>
+        </td>
+
+        {/* Job Date */}
+        <td className="p-4 text-center truncate border-l border-gray-300">
+          {row.showDates?.length > 0 ? formatDate(row.showDates[0]) : "N/A"}
+        </td>
+
+        {/* Number of Shifts */}
+        <td className="p-4 text-center truncate border-l border-gray-300">
+          {row.shiftsAvailable?.length || "0"}
+        </td>
+
+        {/* Shift Timings */}
+        <td className="p-4 text-center truncate border-l border-gray-300">
+          <div className="flex flex-col gap-2">
+            {row.shiftsAvailable?.map((shift, i) => (
+              <div key={i} className="bg-[#048BE1] px-2.5 py-1 rounded-full font-medium text-white">
+                {shift}
+              </div>
+            )) || "N/A"}
+          </div>
+        </td>
+
+        {/* Employer Name & Logo */}
+        <td className="p-4 text-left truncate border-l border-gray-300 whitespace-nowrap w-max">
+          <div className="flex gap-2 w-max">
+            <img className="w-8 h-8" src={row.employer?.companyLogo || "/static/company.png"} alt="Company Logo" />
+            <div className="flex flex-col">
+              <p className="w-max">{row.employer?.companyName || "N/A"}</p>
+            </div>
+          </div>
+        </td>
+
+        {/* Outlet Details */}
+        <td className="p-4 text-left truncate border-l border-gray-300">
+          <div className="flex items-center gap-2">
+            <img className="w-18 h-4" src={row.outlet?.outletImage || "/static/defaultOutlet.png"} alt="Outlet" />
+            <div className="text-sm text-gray-500">{row.outlet?.outletName || "N/A"}</div>
+          </div>
+        </td>
+
+        {/* Break Hours & Type */}
+        <td className="p-4 text-center truncate border-l border-gray-300">
+          {row.breakHours ? `${row.breakHours} Hrs` : "N/A"} ({row.breakType})
+        </td>
+
+        {/* Total Wage */}
+        <td className="p-4 text-center truncate border-l border-gray-300">
+          {row.totalPotentialWages ? `$${row.totalPotentialWages}` : "N/A"}
+        </td>
+
+        {/* Job Status */}
+        <td className="p-4 text-center truncate border-l border-gray-300">
+          <span className={`px-2.5 py-1 rounded-full text-sm font-medium ${getStatusColor(row.jobStatus)}`}>
+            {row.jobStatus}
+          </span>
+        </td>
+
+        {/* Action Buttons */}
+        <td className="p-4 text-center truncate border-l border-gray-300">
+          <button className="p-2 hover:bg-gray-100 rounded-full" onClick={() => handlePopupToggle(index)}>
+            <MoreVertical className="h-4 w-4" />
+          </button>
+          {isPopupOpen === index && (
+            <div className="absolute top-[30%] right-14 mt-1 w-32 bg-white shadow-md border border-gray-300 rounded-md z-10">
+              <button className="flex items-center gap-2 p-2 w-full text-left text-gray-700 hover:bg-gray-100" onClick={() => handleActionClick("View", row._id)}>
+                <Eye size={16} />
+                View
+              </button>
+              <button className="flex items-center gap-2 p-2 w-full text-left text-gray-700 hover:bg-gray-100" onClick={() => handleActionClick("Modify", row._id)}>
+                <Edit size={16} />
+                Modify
+              </button>
+              <button className="flex items-center gap-2 p-2 w-full text-left text-[#E34E30] hover:bg-gray-100" onClick={() => handleActionClick("Cancel Job", row._id)}>
+                <Ban size={16} color="#E34E30" />
+                Cancel Job
+              </button>
+            </div>
+          )}
+        </td>
+      </tr>
+    ))
+  ) : (
+    <tr>
+      <td colSpan="9" className="text-center py-4">
+        No jobs available
+      </td>
+    </tr>
+  )}
+</tbody>
+
+          </table>
+        </div>
+
+        <CustomScrollbar
+          scrollContainerRef={scrollContainerRef}
+          totalSteps={3}
+        />
+        {/* Pagination */}
+        <div className="flex justify-center items-center gap-2">
+          <button className="px-3 py-1 border border-gray-300 rounded-md bg-white hover:bg-gray-50">
+            ←
+          </button>
+          <div className="flex gap-1">
+            <button className="px-3 py-1 border border-blue-500 rounded-md bg-blue-500 text-white">
+              1
+            </button>
+            <button className="px-3 py-1 border border-gray-300 rounded-md bg-white hover:bg-gray-50">
+              2
+            </button>
+            <button className="px-3 py-1 border border-gray-300 rounded-md bg-white hover:bg-gray-50">
+              3
+            </button>
+            <button className="px-3 py-1 border border-gray-300 rounded-md bg-white hover:bg-gray-50">
+              4
+            </button>
+            <span className="px-3 py-1">...</span>
+            <button className="px-3 py-1 border border-gray-300 rounded-md bg-white hover:bg-gray-50">
+              55
+            </button>
+            <button className="px-3 py-1 border border-gray-300 rounded-md bg-white hover:bg-gray-50">
+              56
+            </button>
+            <button className="px-3 py-1 border border-gray-300 rounded-md bg-white hover:bg-gray-50">
+              57
+            </button>
+            <button className="px-3 py-1 border border-gray-300 rounded-md bg-white hover:bg-gray-50">
+              58
+            </button>
+          </div>
+          <button className="px-3 py-1 border border-gray-300 rounded-md bg-white hover:bg-gray-50">
+            →
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default JobManagement;
