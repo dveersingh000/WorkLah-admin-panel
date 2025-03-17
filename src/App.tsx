@@ -18,6 +18,7 @@ import PrivateRoute from "./components/PrivateRoute"; // Import PrivateRoute
 import { useAuth, AuthProvider } from "./context/AuthContext";
 import NewJob from "./pages/jobManagemant/NewJob";
 import ModifyJob from "./pages/jobManagemant/ModifyJob";
+import AddEmployer from "./pages/employers/AddEmployer";
 
 const AppContent: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
@@ -42,6 +43,7 @@ const AppContent: React.FC = () => {
 
           {/* Employers pages */}
           <Route path="employers" element={<EmployerTable />} />
+          <Route path="employers/add-employer" element={<AddEmployer />} />
           <Route path="employers/:id/outletDetails" element={<OutletDetail />} />
           <Route path="employers/:id" element={<ActiveJobPosting id={""} />} />
 
@@ -53,7 +55,10 @@ const AppContent: React.FC = () => {
   );
 };
 
-const App: React.FC = () => {
+/*************  ✨ Codeium Command ⭐  *************/
+/**
+ * The main app component, which renders the AuthProvider and Router
+/******  f561d04b-a663-47e8-8b66-0364932f600c  *******/const App: React.FC = () => {
   return (
     <AuthProvider>
       <Router>

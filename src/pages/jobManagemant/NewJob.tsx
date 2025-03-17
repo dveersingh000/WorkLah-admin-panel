@@ -70,7 +70,7 @@ export default function NewJob() {
     jobName: "",
     jobLogo: "/assets/icons/plus-emoji.png",
     company: {
-      name: "RIGHT SERVICE PTE. LTD.",
+      name: "Right Service PTE LTD",
       agreementEndDate: new Date(),
     },
     outletName: "",
@@ -236,7 +236,7 @@ export default function NewJob() {
         ...formData,
         dates: formattedDates, // Send as an array of Date objects
       };
-      const response = await axiosInstance.post("/jobs/", updatedFormData);
+      const response = await axiosInstance.post("/jobs", updatedFormData);
       console.log(response);
       navigate("/jobs/job-management");
     } catch (error) {
