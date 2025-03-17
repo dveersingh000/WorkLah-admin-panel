@@ -39,13 +39,14 @@ const AppContent: React.FC = () => {
           <Route path="jobs/:jobId" element={<JobDetailsPage />} />
           <Route path="jobs/:jobId/modify" element={<ModifyJob />} />
           <Route path="jobs/:jobId/candidates/:id" element={<CandidateProfile />} />
-          <Route path="edit-candidate-profile" element={<EditCandidateProfile />} />
+          <Route path="edit-candidate-profile/:id" element={<EditCandidateProfile />} />
 
           {/* Employers pages */}
           <Route path="employers" element={<EmployerTable />} />
           <Route path="employers/add-employer" element={<AddEmployer />} />
           <Route path="employers/:id/outletDetails" element={<OutletDetail />} />
           <Route path="employers/:id" element={<ActiveJobPosting id={""} />} />
+          <Route path="employers/add-employer" element={<AddEmployer />} />
 
           <Route path="hustle-heroes" element={<HustleHeroesList />} />
           <Route path="payments" element={<EmployeePayments />} />

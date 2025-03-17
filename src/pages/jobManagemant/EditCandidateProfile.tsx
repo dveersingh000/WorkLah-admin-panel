@@ -36,9 +36,10 @@ import { FiEdit3 } from "react-icons/fi";
 import { FaHandHoldingWater } from "react-icons/fa";
 import { TbUserHexagon } from "react-icons/tb";
 
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import JobHistory from "../../components/employerDetail/JobHistory";
 import WorkHistory from "../../components/employerDetail/WorkHistory";
+import { axiosInstance } from "../../lib/authInstances";
 
 interface PersonalDetails {
   EWalletAmount: string;
@@ -64,17 +65,19 @@ interface ActiveJobs {
 }
 
 export default function EditCandidateProfile() {
+  const { id } = useParams<{ id: string }>();
   const [formData, setFormData] = useState({
-    name: 'Ethan Carter',
+    name: '',
     gender: 'Male',
     workPassStatus: 'Verified',
-    dob: { day: '1', month: 'January', year: '2024' },
-    mobile: '+658547349',
-    email: 'ethancarter@gmail.com',
-    postalCode: '506604',
-    country: 'Singapore',
-    city: 'Yishun',
-    street: 'Chong Pang',
+    dob: "01/01/2002",
+    status: '',
+    mobile: '',
+    email: '',
+    postalCode: '',
+    country: '',
+    city: '',
+    street: '',
     fullAddress: '121/23, lorem epsilum'
   })
 
@@ -136,6 +139,53 @@ export default function EditCandidateProfile() {
     wageGenerated: "Wage Generated",
     rateType: "Rate Type",
   };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value, 
+    }));
+  };
+  
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    const formDataToSend = {
+      fullName: formData.name,
+      phoneNumber: formData.mobile,
+      email: formData.email,
+      gender: formData.gender,
+      dob: formData.dob,
+      city: formData.city,
+      town: formData.town,
+      country: formData.country,
+      employmentStatus:formData.status
+    }
+    console.log("submit", formDataToSend)
+
+  
+    try {
+       const response = await axiosInstance.put(`/admin/candidates/${id}`, formDataToSend, {
+              headers: { "Content-Type": "application/json" },
+            });
+
+            console.log(response)
+  
+      if (!response.status == 200) {
+        throw new Error("Failed to update profile");
+      }
+  
+      console.log("Profile updated successfully:", response);
+      alert("Profile updated successfully!");
+      navigate(-1)
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      alert("Failed to update profile. Please try again.");
+    }
+  };
+  
 
   const getIcon = (key: string) => {
     switch (key) {
@@ -355,14 +405,16 @@ export default function EditCandidateProfile() {
               <h1 className="text-lg font-medium">Edit Candidate Details</h1>
             </div>
 
-            <form className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Candidate Name */}
               <div>
                 <label className="block text-sm mb-2">Candidate Name</label>
                 <div className="relative">
                   <input
                     type="text"
+                     name="name"
                     value={formData.name}
+                    onChange={handleChange}
                     className="w-full px-3 py-2 border rounded-lg pr-10"
                   />
                   <PencilIcon className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -372,7 +424,11 @@ export default function EditCandidateProfile() {
               {/* Gender */}
               <div>
                 <label className="block text-sm mb-2">Gender</label>
-                <select className="w-full px-3 py-2 border rounded-lg appearance-none bg-white">
+                <select 
+                name="gender"
+                value={formData.gender}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border rounded-lg appearance-none bg-white">
                   <option>Male</option>
                   <option>Female</option>
                   <option>Other</option>
@@ -382,17 +438,26 @@ export default function EditCandidateProfile() {
               {/* Work Pass Status */}
               <div>
                 <label className="block text-sm mb-2">Work Pass Status</label>
-                <select className="w-full px-3 py-2 border rounded-lg appearance-none bg-white">
-                  <option>Verified</option>
-                  <option>Pending</option>
-                  <option>Rejected</option>
+                <select className="w-full px-3 py-2 border rounded-lg appearance-none bg-white"
+                name="status"
+                value={formData.status}
+                onChange={handleChange}>
+                  <option>Singaporean/Permanent Resident</option>
+                  <option>Long Term Visit Pass Holder</option>
+                  <option>Student Pass</option>
+                  <option>No Valid Work Pass</option>
                 </select>
               </div>
 
               {/* DOB */}
               <div>
                 <label className="block text-sm mb-2">DOB</label>
-                <div className="flex gap-2">
+                <div
+                   name="dob"
+                   type="date"
+                   value={formData.dob}
+                   onChange={handleChange}
+                    className="flex gap-2">
                   <select className="px-3 py-2 border rounded-lg appearance-none bg-white">
                     <option>1</option>
                     {/* Add more days */}
@@ -420,7 +485,9 @@ export default function EditCandidateProfile() {
                 <div className="relative">
                   <input
                     type="tel"
+                    name="mobile"
                     value={formData.mobile}
+                    onChange={handleChange}
                     className="w-full px-3 py-2 border rounded-lg pr-10"
                   />
                   <PencilIcon className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -434,6 +501,8 @@ export default function EditCandidateProfile() {
                   <input
                     type="email"
                     value={formData.email}
+                    name="email"
+                    onChange={handleChange}
                     className="w-full px-3 py-2 border rounded-lg pr-10"
                   />
                   <PencilIcon className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -446,6 +515,8 @@ export default function EditCandidateProfile() {
                 <div className="relative">
                   <input
                     type="text"
+                    name="postalCode"
+                    onChange={handleChange}
                     value={formData.postalCode}
                     className="w-full px-3 py-2 border rounded-lg pr-10"
                   />
@@ -457,10 +528,12 @@ export default function EditCandidateProfile() {
               <div>
                 <label className="block text-sm mb-2">Country</label>
                 <input
-                  type="text"
-                  value={formData.country}
+                   type="text"
+                   name="country"
+                   onChange={handleChange}
+                   value={formData.country}
                   className="w-full px-3 py-2 bg-gray-100 rounded-lg"
-                  disabled
+                  // disabled
                 />
               </div>
 
@@ -468,10 +541,12 @@ export default function EditCandidateProfile() {
               <div>
                 <label className="block text-sm mb-2">City</label>
                 <input
+                  name="city"
+                  onChange={handleChange}
                   type="text"
                   value={formData.city}
                   className="w-full px-3 py-2 bg-gray-100 rounded-lg"
-                  disabled
+                  // disabled
                 />
               </div>
 
@@ -481,7 +556,9 @@ export default function EditCandidateProfile() {
                 <div className="relative">
                   <input
                     type="text"
-                    value={formData.street}
+                    name="town"
+                    onChange={handleChange}
+                    value={formData.town}
                     className="w-full px-3 py-2 border rounded-lg pr-10"
                   />
                   <PencilIcon className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -500,11 +577,12 @@ export default function EditCandidateProfile() {
                   <PencilIcon className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 </div>
               </div>
+              <div></div>
 
               {/* Buttons */}
              
-            </form>
-            <div className="flex w-1/2 items-start mx-[25%] gap-4 mt-20">
+            
+            <div className="flex w-full items-start mx-[25%] gap-4 mt-20">
                 <button
                   type="button"
                   className="flex-1 px-14 py-4 border border-[#0099FF] text-[#0099FF] rounded-lg hover:bg-gray-50"
@@ -518,6 +596,7 @@ export default function EditCandidateProfile() {
                   Save
                 </button>
               </div>
+              </form>
           </div>
         </div>
       </div>

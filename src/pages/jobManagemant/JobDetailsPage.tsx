@@ -103,16 +103,21 @@ const JobDetailsPage = () => {
   const { jobId } = useParams();
 
   const fetchJobDetails = async () => {
-    axiosInstance
-      .get(`/jobs/${jobId}`)
-      .then((response) => {
-        setJobsData(response.data || {}); // Assign the jobs array or an empty array
-        setShifts(response.data.shifts || []); // Assign the jobs array or an empty array
-      })
-      .catch((error) => {
-        console.error("Error fetching job details:", error);
-      });
+    try {
+      const response = await axiosInstance.get(`/admin/jobs/${jobId}`);
+      
+      if (response.data.success) {
+        const job = response.data.job; // Extract the job object
+        setJobsData(job);
+        setShifts(job.shifts || []); // Ensure shifts are properly assigned
+      } else {
+        console.error("Failed to fetch job details:", response.data);
+      }
+    } catch (error) {
+      console.error("Error fetching job details:", error);
+    }
   };
+  
   console.log(jobsData);
   console.log(jobId);
   useEffect(() => {
@@ -254,13 +259,13 @@ const JobDetailsPage = () => {
               <p className="text-[#4C4C4C] text-[16px] leading-[20px] font-semibold">
                 Total Vacancy Candidate:{" "}
                 <span className="font-semibold text-[#000000] text-[20px] leading-[25px]">
-                  {jobsData.totalVacancy}/10
+                  {jobsData.vacancyUsers}
                 </span>
               </p>
               <p className="text-[#4C4C4C] text-[16px] leading-[20px] font-semibold">
                 Total Standby :{" "}
                 <span className="font-semibold text-[#000000] text-[20px] leading-[25px]">
-                  {jobsData.totalStandby}/3
+                  {jobsData.standbyUsers}
                 </span>
               </p>
             </div>
@@ -309,13 +314,13 @@ const JobDetailsPage = () => {
               <p className="text-[#4C4C4C] text-[16px] leading-[20px] font-semibold">
                 Job ID:{" "}
                 <span className="font-normal text-[#000000] text-[16px] leading-[20px]">
-                  #{convertIdToFourDigits(jobsData._id)}
+                  #{convertIdToFourDigits(jobsData.jobId)}
                 </span>
               </p>
               <p className="text-[#4C4C4C] text-[16px] leading-[20px] font-semibold">
                 Date:{" "}
                 <span className="font-normal text-[#000000] text-[16px] leading-[20px]">
-                  12/10/2025
+                  {jobsData.date}
                   {/* {formatDate(`${jobsData?.dates[0]}`)} */}
                 </span>
               </p>
@@ -323,7 +328,7 @@ const JobDetailsPage = () => {
                 <div className="flex items-center gap-2">
                   <MapPin className="w-6 h-6 " />
                   <p className="font-normal text-[#000000] text-[16px] leading-[20px]">
-                    Sengkang, Singapore
+                  {jobsData.shortAddress}
                   </p>
                 </div>
                 <p className="text-[12px] text-[#0099FF] leading-[18px] font-normal underline">
@@ -421,18 +426,20 @@ const JobDetailsPage = () => {
                 </td>
                 <td className="p-4 text-center text-[16px] leading-[20px] truncate font-medium  border-r border-[#C6C6C6]">
                   <span className="bg-[#048BE1] text-white px-3 py-2 text-center rounded-full">
-                  {shift.startTime.hours}:{shift.startTime.minutes}{" "}
-                  {shift.startTime.period}
+                  {/* {shift.startTime}:{shift.startTime.minutes}{" "}
+                  {shift.startTime.period} */}
+                  {shift.startTime}
                   </span>
                 </td>
                 <td className="p-4 text-center text-[16px] leading-[20px] truncate font-medium  border-x border-[#C6C6C6]">
                   <span className="bg-[#048BE1] text-white px-3 py-2 text-center rounded-full">
-                  {shift.endTime.hours}:{shift.endTime.minutes}{" "}
-                  {shift.endTime.period}
+                  {/* {shift.endTime.hours}:{shift.endTime.minutes}{" "}
+                  {shift.endTime.period} */}
+                  {shift.endTime}
                   </span>
                 </td>
                 <td className="p-4 text-center text-[16px] leading-[20px] truncate font-medium  border-x border-[#C6C6C6]">
-                  {convertIdToFourDigits(shift._id)}
+                  {convertIdToFourDigits(shift.shiftId)}
                 </td>
                 <td className="p-4 text-center text-[16px] leading-[20px] truncate font-medium  border-x border-[#C6C6C6]">
                   <div className="flex items-center gap-4">
@@ -473,7 +480,7 @@ const JobDetailsPage = () => {
                     <button
                       className="px-2 py-2 bg-[#F1F1F1] rounded-full hover:bg-gray-300"
                       onClick={() =>
-                        handleIncrease(shift.id, "standbyFilled", 1)
+                        handleIncrease(shift.shiftId, "standbyFilled", 1)
                       }
                     >
                       <Plus className="w-5 h-5" />
@@ -481,7 +488,7 @@ const JobDetailsPage = () => {
                   </div>
                 </td>
                 <td className="p-4 text-center text-[16px] leading-[20px] truncate font-medium  border-x border-[#C6C6C6]">
-                  {shift.duration}
+                  {shift.totalDuration}
                 </td>
                 <td className="p-4 text-center text-[16px] leading-[20px] truncate font-medium  border-x border-[#C6C6C6]">
                   <p className="px-2 py-1 rounded-full bg-[#EDEDED]">
@@ -489,7 +496,7 @@ const JobDetailsPage = () => {
                   </p>
                 </td>
                 <td className="p-4 text-center text-[16px] leading-[20px] truncate font-medium  border-x border-[#C6C6C6]">
-                  {shift.breakHours}
+                  {shift.breakIncluded}
                 </td>
                 <td className="p-4 text-center text-[16px] leading-[20px] truncate font-medium  border-x border-[#C6C6C6]">
                   <p
@@ -511,10 +518,10 @@ const JobDetailsPage = () => {
                 <td className="p-4 text-center text-[16px] leading-[20px] truncate font-medium  border-x border-[#C6C6C6]">
                   <p
                     className={`px-2 py-1 rounded-full ${
-                      getStatusColor(jobsData.status)
+                      getStatusColor(jobsData.jobStatus)
                     } `}
                   >
-                    {jobsData.status}
+                    {jobsData.jobStatus}
                   </p>
                 </td>
               </tr>

@@ -32,8 +32,6 @@ interface Employer {
   serviceAgreement: string;
 }
 
-
-
 const EmployerTable: React.FC = () => {
   const [isPopupOpen, setIsPopupOpen] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -43,29 +41,39 @@ const EmployerTable: React.FC = () => {
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
 
   const navigate = useNavigate()
+  const images = "http://localhost:3000"
 
-  useEffect(() => {
+  // useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await axiosInstance.get(`/employers?page=${currentPage}&limit=10`);
-        console.log("Employer API Response:", response.data); // Debugging
+  
+  
+        if (!response.data || !Array.isArray(response.data.employers)) {
+          throw new Error("Invalid API response format");
+        }
   
         const employerData = response.data.employers.map((employer: any) => ({
-          employerId: `#${employer._id.slice(-4)}`, // Fix: Employer ID format
-          companyLogo: employer.companyLogo || "/assets/company.png",
-          companyLegalName: employer.companyLegalName, // Fix: Correct field name
-          mainContactPerson: employer.mainContactPersonName, // Fix: Correct field name
-          jobPosition: employer.mainContactPersonPosition, // Fix: Correct field name
-          mainContactNumber: employer.mainContactPersonNumber, // Fix: Correct field name
-          companyEmail: employer.companyEmail,
-          companyNumber: employer.companyNumber,
-          accountManager: employer.accountManager,
-          industry: employer.industry,
-          outlets: employer.outlets?.length || 0, // Fix: Count outlets properly
-          contractStartDate: employer.contractStartDate ? employer.contractStartDate.substring(0, 10) : "",
-          contractEndDate: employer.contractEndDate ? employer.contractEndDate.substring(0, 10) : "",
-          serviceAgreement: employer.contractStatus, // Fix: Ensure status is mapped
+          employerId: `#${employer._id.slice(-4)}`,
+          companyLogo: employer.companyLogo ? `${images}${employer.companyLogo}`: "/assets/company.png",
+
+          companyLegalName: employer.companyLegalName || employer.companyName,
+          hqAddress: employer.hqAddress,
+          mainContactPerson: employer.mainContactPersonName || "N/A", // Fix Key
+          jobPosition: employer.jobPosition || "N/A",
+          mainContactNumber: employer.mainContactPersonNumber || "N/A", // Fix Key
+          companyEmail: employer.companyEmail || "N/A",
+          companyNumber: employer.companyNumber || "N/A",
+          accountManager: employer.accountManager || "N/A",
+          industry: employer.industry || "N/A",
+          // outlets: employer.outlets || 0,
+          outlets: Array.isArray(employer.outlets) ? employer.outlets.length : 0, 
+          contractStartDate: employer.contractStartDate?.substring(0, 10) || "N/A",
+          contractEndDate: employer.contractEndDate?.substring(0, 10) || "N/A",
+          serviceAgreement: employer.serviceAgreement || "N/A",
+          employerOriginalId: employer._id
         }));
+  
   
         setEmployers(employerData);
         setTotalPages(response.data.totalPages || 1); // Ensure total pages updates correctly
@@ -76,8 +84,13 @@ const EmployerTable: React.FC = () => {
       }
     };
   
+  //   fetchData();
+  // }, [currentPage]);
+
+  useEffect(() => {
     fetchData();
   }, [currentPage]);
+  
   
 
   const handlePageChange = (page: number) => {
@@ -95,6 +108,25 @@ const EmployerTable: React.FC = () => {
     setIsPopupOpen(null);
   };
 
+  const handleDelete = async (id: string) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this employer?");
+    if (!confirmDelete) return;
+  
+    try {
+      await axiosInstance.delete(`/employers/${id}`);
+      
+      setEmployers((prevEmployers) => prevEmployers.filter(emp => emp.employerId !== id));
+  
+      alert("Employer deleted successfully!");
+
+      fetchData();
+    } catch (error) {
+      console.error("Error deleting employer:", error);
+      alert("Failed to delete employer. Please try again.");
+    }
+  };
+  
+
   return (
     <div className="p-4 flex flex-col justify-between min-h-screen">
       <div>
@@ -103,9 +135,9 @@ const EmployerTable: React.FC = () => {
 
           <div className="flex items-center gap-4 ">
             <Link to="/employers/add-employer">
-              <button className="p-[14px] rounded-[26px] shadow-lg bg-[#FFFFFF] hover:bg-gray-50 ">
-                <Plus className="w-[24px] h-[24px]" />
-              </button>
+            <button className="p-[14px] rounded-[26px] shadow-lg bg-[#FFFFFF] hover:bg-gray-50 ">
+              <Plus className="w-[24px] h-[24px]" />
+            </button>
             </Link>
             <button className="p-[14px] rounded-[26px] shadow-lg bg-dark hover:bg-slate-950 ">
               <Filter
@@ -239,7 +271,7 @@ const EmployerTable: React.FC = () => {
                       <div className="absolute top-[30%] right-12 mt-1 w-32 bg-white shadow-md border border-gray-300 rounded-md z-10">
                         <button
                           className="flex items-center gap-2 p-2 w-full text-left text-gray-700 hover:bg-gray-100"
-                          onClick={() => handleActionClick("View", index)}
+                          onClick={() => handleActionClick("View", employers[index].employerOriginalId)}
                         >
                           <Eye size={16} />
                           View
@@ -262,11 +294,12 @@ const EmployerTable: React.FC = () => {
                         </button>
                         <button
                           className="flex items-center gap-2 p-2 w-full text-left text-[#E34E30] hover:bg-gray-100"
-                          onClick={() => handleActionClick("Remove", index)}
+                          onClick={() => handleDelete(employers[index].employerOriginalId)}
                         >
                           <Trash2 size={16} color="#E34E30" />
                           Remove
                         </button>
+
                       </div>
                     )}
                   </td>

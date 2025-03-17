@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { axiosInstance } from "../../lib/authInstances";
 import { UploadCloud, Trash2, Plus, Image, Edit, Calendar } from "lucide-react";
+import { AxiosError } from "axios";
 
 const months = [
   "January", "February", "March", "April", "May", "June",
@@ -27,7 +28,9 @@ const AddEmployer: React.FC = () => {
     acraCertificate: null as File | null,
   });
 
+
   const [outlets, setOutlets] = useState([{ name: "", address: "", type: "", image: null as File | null }]);
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -46,6 +49,8 @@ const AddEmployer: React.FC = () => {
       },
     }));
   };
+
+
 
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: string) => {
@@ -69,49 +74,106 @@ const AddEmployer: React.FC = () => {
     setOutlets(updatedOutlets);
   };
 
+
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+ 
+  //   const formDataToSend = new FormData();
+  //   Object.entries(formData).forEach(([key, value]) => {
+  //     if (value instanceof File) {
+  //       formDataToSend.append(key, value);
+  //     } else if (value && typeof value === "object" && !Array.isArray(value)) {
+  //       Object.entries(value).forEach(([subKey, subValue]) => {
+  //         formDataToSend.append(`${key}[${subKey}]`, String(subValue));
+  //       });
+  //     } else {
+  //       formDataToSend.append(key, String(value));
+  //     }
+  //   });
+ 
+  //   // ✅ Remove empty outlets before sending
+  //   const validOutlets = outlets.filter(
+  //     (outlet) => outlet.name.trim() && outlet.address.trim() && outlet.type.trim()
+  //   );
+ 
+  //   validOutlets.forEach((outlet, index) => {
+  //     formDataToSend.append(`outlets[${index}][name]`, outlet.name);
+  //     formDataToSend.append(`outlets[${index}][address]`, outlet.address);
+  //     formDataToSend.append(`outlets[${index}][type]`, outlet.type);
+  //     if (outlet.image) formDataToSend.append(`outlets[${index}][image]`, outlet.image);
+  //   });
+ 
+  //   try {
+  //     const response = await axiosInstance.post("/employers/create", formDataToSend);
+  //     if (response.status === 201) {
+  //       alert("Employer added successfully!");
+  //       navigate("/employers");
+  //     }
+  //   } catch (error) {
+  //     console.error("Error adding employer:", error);
+  //     alert("Failed to add employer.");
+  //   }
+  // };
+ 
+
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Create the JSON body
+    const formDataToSend = {
+      companyLegalName: formData.companyLegalName,
+      hqAddress: formData.hqAddress,
+      companyNumber: formData.companyNumber,
+      companyEmail: formData.companyEmail,
+      mainContactPersonName: formData.mainContactPersonName,
+      mainContactPersonPosition: formData.mainContactPersonPosition,
+      mainContactPersonNumber: formData.mainContactPersonNumber,
+      accountManager: formData.accountManager,
+      industry: formData.industry,
+      contractStartDate: {
+        day: formData.contractStartDate.day,
+        month: formData.contractStartDate.month,
+        year: formData.contractStartDate.year,
+      },
+      contractEndDate: {
+        day: formData.contractEndDate.day,
+        month: formData.contractEndDate.month,
+        year: formData.contractEndDate.year,
+      },
+      contractStatus: formData.contractStatus,
+      outlets: outlets.map((outlet) => ({
+        name: outlet.name,
+        address: outlet.address,
+        type: outlet.type,
+      })),
+    };
   
-    const formDataToSend = new FormData();
-    Object.entries(formData).forEach(([key, value]) => {
-      if (value instanceof File) {
-        formDataToSend.append(key, value);
-      } else if (value && typeof value === "object" && !Array.isArray(value)) {
-        Object.entries(value).forEach(([subKey, subValue]) => {
-          formDataToSend.append(`${key}[${subKey}]`, String(subValue));
-        });
-      } else {
-        formDataToSend.append(key, String(value));
-      }
-    });
-  
-    // ✅ Remove empty outlets before sending
-    const validOutlets = outlets.filter(
-      (outlet) => outlet.name.trim() && outlet.address.trim() && outlet.type.trim()
-    );
-  
-    validOutlets.forEach((outlet, index) => {
-      formDataToSend.append(`outlets[${index}][name]`, outlet.name);
-      formDataToSend.append(`outlets[${index}][address]`, outlet.address);
-      formDataToSend.append(`outlets[${index}][type]`, outlet.type);
-      if (outlet.image) formDataToSend.append(`outlets[${index}][image]`, outlet.image);
-    });
+    console.log("Submitting JSON data:", formDataToSend); // Debugging log
   
     try {
-      const response = await axiosInstance.post("/employers/create", formDataToSend);
+      const response = await axiosInstance.post("/employers/create", formDataToSend, {
+        headers: { "Content-Type": "application/json" },
+      });
+  
+      console.log("API Response:", response); // Debugging log
+  
       if (response.status === 201) {
         alert("Employer added successfully!");
         navigate("/employers");
       }
-    } catch (error) {
-      console.error("Error adding employer:", error);
-      alert("Failed to add employer.");
+    } catch (error: unknown) {
+      if (error instanceof AxiosError) {
+        console.error("Error adding employer:", error.response?.data);
+        alert(error.response?.data?.message || "An error occurred while adding the employer.");
+      } else {
+        console.error("Unexpected error:", error);
+        alert("Something went wrong. Please try again.");
+      }
     }
   };
   
   
-  
-
 
   return (
     <div className="p-6 bg-white rounded-lg shadow-md w-full max-w-6xl mx-auto">
@@ -324,10 +386,11 @@ const AddEmployer: React.FC = () => {
             Save
           </button>
         </div>
-        
+       
       </form>
     </div>
   );
 };
+
 
 export default AddEmployer;

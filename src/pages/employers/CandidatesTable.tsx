@@ -1,9 +1,8 @@
-"use client";
-
 import { ArrowLeft, Eye, MoreVertical, RotateCcw, Settings, View } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FiCheck, FiEdit3 } from "react-icons/fi";
 import { useNavigate, useParams } from "react-router-dom";
+import { axiosInstance } from "../../lib/authInstances";
 // import Image from "next/image"
 
 interface Candidate {
@@ -24,67 +23,96 @@ interface Candidate {
   image: string;
 }
 
-const candidates: Candidate[] = [
-  {
-    id: 1,
-    name: "Ethan Carter",
-    gender: "Male",
-    mobile: "+65 9123 4567",
-    dob: "04 Oct, 1999",
-    nric: "XXXXXX4575",
-    startTime: "11:00 AM",
-    endTime: "03:00 PM",
-    clockedIn: "11:05 AM",
-    clockedOut: "03:00 PM",
-    completedJobs: 122,
-    status: "Confirmed",
-    jobStatus: "Completed",
-    wage: 72,
-    image: "/assets/teamm1.svg",
-  },
-  {
-    id: 2,
-    name: "Liam Bennett",
-    gender: "Male",
-    mobile: "+65 9123 4567",
-    dob: "04 Oct, 1999",
-    nric: "XXXXXX4575",
-    startTime: "11:00 AM",
-    endTime: "03:00 PM",
-    clockedIn: "11:10 AM",
-    clockedOut: "02:50 PM",
-    completedJobs: 122,
-    status: "Confirmed",
-    jobStatus: "Completed",
-    wage: 69,
-    image: "/assets/teamm2.svg",
-  },
-  {
-    id: 3,
-    name: "Ava Sullivan",
-    gender: "Female",
-    mobile: "+65 9123 4567",
-    dob: "04 Oct, 1999",
-    nric: "XXXXXX4575",
-    startTime: "11:00 AM",
-    endTime: "03:00 PM",
-    clockedIn: "11:06 AM",
-    clockedOut: "03:00 PM",
-    completedJobs: 122,
-    status: "Standby",
-    jobStatus: "Completed",
-    wage: 73,
-    image: "/assets/teamm3.svg",
-  },
-];
+// const candidates: Candidate[] = [
+//   {
+//     id: 1,
+//     name: "Ethan Carter",
+//     gender: "Male",
+//     mobile: "+65 9123 4567",
+//     dob: "04 Oct, 1999",
+//     nric: "XXXXXX4575",
+//     startTime: "11:00 AM",
+//     endTime: "03:00 PM",
+//     clockedIn: "11:05 AM",
+//     clockedOut: "03:00 PM",
+//     completedJobs: 122,
+//     status: "Confirmed",
+//     jobStatus: "Completed",
+//     wage: 72,
+//     image: "/assets/teamm1.svg",
+//   },
+//   {
+//     id: 2,
+//     name: "Liam Bennett",
+//     gender: "Male",
+//     mobile: "+65 9123 4567",
+//     dob: "04 Oct, 1999",
+//     nric: "XXXXXX4575",
+//     startTime: "11:00 AM",
+//     endTime: "03:00 PM",
+//     clockedIn: "11:10 AM",
+//     clockedOut: "02:50 PM",
+//     completedJobs: 122,
+//     status: "Confirmed",
+//     jobStatus: "Completed",
+//     wage: 69,
+//     image: "/assets/teamm2.svg",
+//   },
+//   {
+//     id: 3,
+//     name: "Ava Sullivan",
+//     gender: "Female",
+//     mobile: "+65 9123 4567",
+//     dob: "04 Oct, 1999",
+//     nric: "XXXXXX4575",
+//     startTime: "11:00 AM",
+//     endTime: "03:00 PM",
+//     clockedIn: "11:06 AM",
+//     clockedOut: "03:00 PM",
+//     completedJobs: 122,
+//     status: "Standby",
+//     jobStatus: "Completed",
+//     wage: 73,
+//     image: "/assets/teamm3.svg",
+//   },
+// ];
 
 export default function CandidateManagement() {
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [data, setData] = useState(null)
+  console.log("candidates", candidates)
   const [activeTime, setActiveTime] = useState("11:00 AM");
   const [isPopupOpen, setIsPopupOpen] = useState<number | null>(null);
   const [isEditTime, setIsEditTime] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const navigate = useNavigate()
   const {jobId} = useParams()
+  console.log(jobId)
+
+  useEffect(()=> {
+    const fetchCandidates = async () => {
+      try {
+        const response = await axiosInstance.get(`/admin/jobs/candidates/${jobId}`);
+        console.log(response)
+        setCandidates(response.data.candidates)
+        setData(response.data)
+      } catch (error) {
+        console.error("Error fetching candidates:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (jobId) {
+      fetchCandidates();
+    }
+  }, [jobId]);
+
+  if (loading) {
+    return <div className="text-center py-10">Loading candidates...</div>;
+  }
+
+  
 
   const handleActionClick = (action: string, id: number) => {
     // alert(`Action: ${action}, Row: ${index}`);
@@ -120,7 +148,7 @@ export default function CandidateManagement() {
               <span className="text-base font-semibold text-[#4C4C4C]">
                 Job:
               </span>
-              <span className="text-base font-semibold">Tray Collector</span>
+              <span className="text-base font-semibold">{data.job?.jobName}</span>
               <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs">
                 Active
               </span>
@@ -130,14 +158,14 @@ export default function CandidateManagement() {
                 Employer:
               </span>
               <span className="text-base font-semibold">
-                RIGHT SERVICE PTE. LTD.
+              {data.job?.employer}
               </span>
             </div>
             <div className="flex gap-1">
               <span className="text-base font-semibold text-[#4C4C4C]">
                 Date:
               </span>
-              <span className="text-base font-semibold ">10 Sept, 24</span>
+              <span className="text-base font-semibold ">{data.job?.date}</span>
             </div>
           </div>
         </div>
@@ -150,32 +178,33 @@ export default function CandidateManagement() {
 
       <div className="flex mb-6 gap-2">
         <button className="px-4 py-2 text-base font-medium rounded-full bg-black text-white">
-          All Candidates (8)
+          All Candidates ({data.totalCandidates})
         </button>
         <button className="px-4 py-2 text-base font-medium rounded-full bg-[#F4F4F4]">
           Vacancy Candidates (6)
         </button>
         <button className="px-4 py-2 text-base font-medium rounded-full bg-[#F4F4F4]">
-          Standby Candidates (2)
+          Standby Candidates ({data.standbyCount})
         </button>
       </div>
 
       <div className="flex gap-2 mb-6">
-        {["11:00 AM", "04:00 PM", "07:00 PM"].map((time) => (
-          <button
-            key={time}
-            className={`px-4 py-1 text-base font-medium border rounded-full 
-            ${
-              time === activeTime
-                ? "bg-[#048BE1] text-white border-[#048BE1]"
-                : "text-black border-[#048BE1] hover:bg-gray-50"
-            }`}
-            onClick={() => setActiveTime(time)} // Update activeTime on click
-          >
-            {time}
-          </button>
-        ))}
-      </div>
+  {Array.from(new Set(candidates.map((c) => c.shift?.startTime).filter(Boolean))).map((time) => (
+    <button
+      key={time}
+      className={`px-4 py-1 text-base font-medium border rounded-full 
+      ${
+        time === activeTime
+          ? "bg-[#048BE1] text-white border-[#048BE1]"
+          : "text-black border-[#048BE1] hover:bg-gray-50"
+      }`}
+      onClick={() => setActiveTime(time)} // Update activeTime on click
+    >
+      {time}
+    </button>
+  ))}
+</div>
+
 
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200 ">
@@ -230,7 +259,7 @@ export default function CandidateManagement() {
               <tr key={candidate.id} className="border-b last:border-b-0 relative">
                 <td className="px-4 py-4 text-center truncate border text-[16px] leading-[20px] text-[#000000] font-medium">
                   <img
-                    src={candidate.image || "/fallback-image.jpg"} // Example of a fallback image path
+                    src={candidate.profilePicture || "/fallback-image.jpg"} // Example of a fallback image path
                     alt={candidate.name || "Candidate Image"}
                     className="rounded-full max-w-none"
                     style={{
@@ -241,28 +270,29 @@ export default function CandidateManagement() {
                   />
                 </td>
                 <td className="px-4 py-3 text-center truncate border capitalize text-[16px] leading-[20px] text-[#000000] font-medium">
-                  {candidate.name}
+                  {candidate.fullName || "N/A"}
                 </td>
                 <td className="px-4 py-3 text-center truncate border capitalize text-[16px] leading-[20px] text-[#000000] font-medium">
-                  {candidate.gender}
+                  {candidate.gender || "N/A"}
                 </td>
                 <td className="px-4 py-3 text-center truncate border capitalize text-[16px] leading-[20px] text-[#000000] font-medium">
-                  {candidate.mobile}
+                  {candidate.mobile || "N/A"}
                 </td>
                 <td className="px-4 py-3 text-center truncate border capitalize text-[16px] leading-[20px] text-[#000000] font-medium">
-                  {candidate.dob}
+                  {candidate.dob || "N/A"}
                 </td>
                 <td className="px-4 py-3 text-center truncate border capitalize text-[16px] leading-[20px] text-[#000000] font-medium">
-                  {candidate.nric}
+                  {candidate.nric || "N/A"}
                 </td>
                 <td className="px-4 py-3 text-center truncate border capitalize text-[16px] leading-[20px] text-[#000000] font-medium">
                   <span className="px-2 py-1 bg-[#048BE1] text-white rounded-full ">
-                    {candidate.startTime}
+                  {candidate.shift?.startTime || "N/A"}
+
                   </span>
                 </td>
                 <td className="px-4 py-3 text-center truncate border capitalize text-[16px] leading-[20px] text-[#000000] font-medium">
                   <span className="px-2 py-1 bg-[#048BE1] text-white rounded-full ">
-                    {candidate.endTime}
+                    {candidate.shift?.endTime || "N/A"}
                   </span>
                 </td>
                 <td className="px-4 py-3 text-center truncate border capitalize text-[16px] leading-[20px] text-[#000000] font-medium">
@@ -278,7 +308,7 @@ export default function CandidateManagement() {
                           <input
                             type="text"
                             className="text-[16px] leading-[24px] font-medium bg-[#EBEBEB] rounded-lg text-[#000000] w-[70px] text-center"
-                            defaultValue={candidate.clockedIn}
+                            defaultValue={candidate.shift?.clockedIn}
                           />
                           <FiCheck
                             className="text-white p-1 rounded-full bg-[#049609] w-7 h-7 cursor-pointer"
@@ -288,7 +318,7 @@ export default function CandidateManagement() {
                       ) : (
                         <>
                           <p className="text-[16px] leading-[24px] font-medium text-[#000000] w-[70px] text-center">
-                            {candidate.clockedIn}
+                            {candidate.shift?.clockedIn}
                           </p>
                           <FiEdit3
                             className="text-white p-1 rounded-full bg-[#0099FF] w-7 h-7 cursor-pointer"
@@ -304,7 +334,7 @@ export default function CandidateManagement() {
                     <div className="flex items-center gap-1 py-1 px-3 rounded-full border border-[#048BE1] w-fit">
                       <RotateCcw className="text-white p-1 rounded-full bg-[#CDCDCD] w-7 h-7" />
                       <p className="text-[16px] leading-[24px] font-medium text-[#000000] w-[70px] text-center">
-                        {candidate.clockedOut}
+                        {candidate.shift?.clockedOut}
                       </p>
                       <FiEdit3 className="text-white p-1 rounded-full bg-[#0099FF] w-7 h-7" />
                     </div>
@@ -321,19 +351,19 @@ export default function CandidateManagement() {
                         : "bg-[#FFF7DC] text-[#D37700]"
                     }`}
                   >
-                    {candidate.status}
+                    {candidate.confirmedOrStandby}
                   </span>
                 </td>
                 <td className="px-4 py-3 text-center truncate border capitalize text-[16px] leading-[20px] text-[#000000] font-medium">
                   <span className="bg-[#E0F3FF] text-[#0099FF] px-3 py-0.5 rounded-full">
-                    {candidate.jobStatus}
+                  {data.job?.jobStatus}
                   </span>
                 </td>
                 <td className="px-4 py-3 text-center truncate border capitalize text-[16px] leading-[20px] text-[#000000] font-medium relative">
                   <div className="flex flex-col">
-                    <span>${candidate.wage}</span>
+                    <span>{candidate.shift?.wageGenerated}</span>
                     <span className="text-xs text-gray-500">
-                      1 Hrs (Unpaid Break)
+                    {candidate.shift?.totalDuration} ({candidate.shift?.breakType} Break)
                     </span>
                   </div>
                 </td>

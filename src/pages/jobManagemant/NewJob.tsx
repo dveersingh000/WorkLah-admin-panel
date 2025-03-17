@@ -8,7 +8,7 @@ import {
   Rows2,
   Trash2,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { TiDocumentText } from "react-icons/ti";
 import { axiosInstance } from "../../lib/authInstances";
 import { useNavigate } from "react-router-dom";
@@ -50,6 +50,17 @@ interface Shift {
 export default function NewJob() {
   const [selectedCompanyOption, setSelectedCompanyOption] = useState("hotel");
   const [isCompanyDropdownOpen, setIsCompanyDropdownOpen] = useState(false);
+  const [companies, setCompanies] = useState<
+    { value: string; label: string; image: string }[]
+  >([]);
+
+  const [outlets, setOutlets] = useState([]);
+  const [selectedOutlet, setSelectedOutlet] = useState(null);
+  const [isOutletDropdownOpen, setIsOutletDropdownOpen] = useState(false);
+
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const Images = "http://localhost:3000";
   const [shifts, setShifts] = useState<Shift[]>([
     {
       id: 1,
@@ -85,37 +96,96 @@ export default function NewJob() {
     },
   });
 
-  const companies = [
-    {
-      value: "hotel",
-      label: "RIGHT SERVICE PTE. LTD.",
-      image: "/assets/company.png",
-    },
-    {
-      value: "restaurant",
-      label: "Tech Solutions Pvt. Ltd.",
-      image: "/assets/company.png",
-    },
-    { value: "retail", label: "Company 2", image: "/assets/company.png" },
-    { value: "healthcare", label: "Company 3", image: "/assets/company.png" },
-  ];
+  useEffect(() => {
+    const fetchEmployers = async () => {
+      try {
+        setIsLoading(true);
+        const response = await axiosInstance.get("/employers");
+
+        console.log("API Response:", response.data);
+
+        // Access the "employers" array inside response.data
+        const employerList = response.data.employers;
+
+        if (!Array.isArray(employerList)) {
+          throw new Error("Invalid response format");
+        }
+
+        // Map API response to expected format
+        const formattedEmployers = employerList.map((employer: any) => ({
+          value: employer._id, // Employer ID
+          label: employer.companyLegalName, // Company Name
+          image: `${Images}${employer.companyLogo}` || "/assets/company.png", // Default if no logo
+        }));
+
+        setCompanies(formattedEmployers);
+      } catch (err) {
+        console.error("Error fetching employers:", err);
+        setError("Failed to load employers");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchEmployers();
+  }, []);
+
+  useEffect(() => {
+    const fetchOutlets = async () => {
+      try {
+        setIsLoading(true);
+        const response = await axiosInstance.get("/outlets");
+        const outletsData = response.data.data;
+
+        // Map API data to dropdown format
+        const formattedOutlets = outletsData.map((outlet) => ({
+          value: outlet._id,
+          label: outlet.outletName,
+          // image: outlet.outletImage || "/assets/outlet-placeholder.png",
+          image:
+            `${Images}${outlet.outletImage}` ||
+            "/static/outletImage.png",
+        }));
+
+        setOutlets(formattedOutlets);
+      } catch (err) {
+        setError("Failed to load outlets");
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchOutlets();
+  }, []);
+
+  // const companies = [
+  //   {
+  //     value: "hotel",
+  //     label: "RIGHT SERVICE PTE. LTD.",
+  //     image: "/assets/company.png",
+  //   },
+  //   {
+  //     value: "restaurant",
+  //     label: "Tech Solutions Pvt. Ltd.",
+  //     image: "/assets/company.png",
+  //   },
+  //   { value: "retail", label: "Company 2", image: "/assets/company.png" },
+  //   { value: "healthcare", label: "Company 3", image: "/assets/company.png" },
+  // ];
 
   const handleCompanyOptionSelect = (value: string) => {
     const selectedCompany = companies.find((option) => option.value === value);
-
-    // Update the selected company and formData
     if (selectedCompany) {
       setSelectedCompanyOption(value);
+
       setFormData((prevData) => ({
         ...prevData,
-        company: {
-          ...prevData.company,
-          name: selectedCompany.label, // Update company name in formData
-        },
+        company: { ...prevData.company, name: selectedCompany.label },
+        employerId: value, // Update employerId
       }));
     }
-
-    setIsCompanyDropdownOpen(false); // Close the dropdown after selection
+    setIsCompanyDropdownOpen(false);
   };
 
   const navigate = useNavigate();
@@ -229,15 +299,49 @@ export default function NewJob() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    try {
-      const formattedDates = formData.dates.map((date) => convertToDate(date));
 
-      const updatedFormData = {
-        ...formData,
-        dates: formattedDates, // Send as an array of Date objects
+    try {
+      // Convert date from object to "YYYY-MM-DD"
+      const formattedDate = `${formData.date.year}-${String(
+        formData.date.month
+      ).padStart(2, "0")}-${String(formData.date.day).padStart(2, "0")}`;
+
+      // Map shifts to match API format
+      const formattedShifts = formData.shifts.map((shift) => ({
+        startTime: `${shift.startTime.hours}:${shift.startTime.minutes}`,
+        startMeridian: shift.startTime.period,
+        endTime: `${shift.endTime.hours}:${shift.endTime.minutes}`,
+        endMeridian: shift.endTime.period,
+        vacancy: shift.vacancy,
+        standbyVacancy: shift.standbyVacancy,
+        duration: shift.duration,
+        breakHours: shift.breakHours,
+        breakType: shift.breakType,
+        rateType: shift.rateType,
+        payRate: shift.payRate,
+        totalWage:
+          shift.rateType === "Hourly rate"
+            ? shift.payRate * shift.duration
+            : shift.payRate,
+      }));
+
+      // Construct request payload
+      const requestData = {
+        jobName: formData.jobName,
+        employerId: selectedCompanyOption,
+        outletId: selectedOutlet,
+        date: formattedDate,
+        location: formData.location,
+        industry: formData.industry || "Hotel",
+        jobScope: formData.requirements.jobScopeDescription.split(", "),
+        jobRequirements: formData.requirements.jobRequirements.split(", "),
+        shifts: formattedShifts,
       };
-      const response = await axiosInstance.post("/jobs", updatedFormData);
-      console.log(response);
+
+      console.log("Submitting Job Data:", requestData);
+      const response = await axiosInstance.post("/admin/jobs/", requestData);
+
+      console.log("Job created successfully:", response.data);
       navigate("/jobs/job-management");
     } catch (error) {
       console.error("Error submitting form:", error);
@@ -259,7 +363,7 @@ export default function NewJob() {
       return {
         ...prevData,
         date: updatedDate,
-        dates: isDuplicate ? prevData.dates : [ updatedDate], // Add unique date to the array
+        dates: isDuplicate ? prevData.dates : [updatedDate], // Add unique date to the array
       };
     });
   };
@@ -315,7 +419,6 @@ export default function NewJob() {
                         width={38}
                         height={38}
                         className="cursor-pointer rounded-full p-1"
-                        
                       />
                     </label>
                     <input
@@ -329,7 +432,6 @@ export default function NewJob() {
 
                   <input
                     type="text"
-                   
                     className="flex-1 border-none p-0 focus:outline-none"
                     name="jobName"
                     value={formData.jobName}
@@ -352,68 +454,74 @@ export default function NewJob() {
               </div>
 
               <div className="relative">
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 flex items-center gap-2 px-3 py-2 border rounded-lg cursor-pointer z-10">
-                    <div
-                      className="flex-1 flex items-center gap-2 "
-                      onClick={() =>
-                        setIsCompanyDropdownOpen(!isCompanyDropdownOpen)
+                {isLoading ? (
+                  <p>Loading...</p>
+                ) : error ? (
+                  <p className="text-red-500">{error}</p>
+                ) : (
+                  <div
+                    className="flex items-center gap-2 px-3 py-2 border rounded-lg cursor-pointer"
+                    onClick={() =>
+                      setIsCompanyDropdownOpen(!isCompanyDropdownOpen)
+                    }
+                  >
+                    {/* Company Logo */}
+                    <img
+                      src={
+                        companies.find(
+                          (option) => option.value === selectedCompanyOption
+                        )?.image || "/assets/company.png"
                       }
+                      alt="Company logo"
+                      width={24}
+                      height={24}
+                      className="rounded"
+                    />
+
+                    {/* Selected Company Name */}
+                    <p className="flex-1">
+                      {companies.find(
+                        (option) => option.value === selectedCompanyOption
+                      )?.label || "Select Employer"}
+                    </p>
+
+                    {/* Edit Button Inside the Box */}
+                    <button
+                      className="p-1 rounded-lg hover:bg-gray-100"
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent dropdown from opening when clicking edit
+                        console.log("Edit button clicked");
+                      }}
                     >
-                      <img
-                        src={
-                          companies.find(
-                            (option) => option.value === selectedCompanyOption
-                          )?.image
-                        }
-                        alt="Company logo"
-                        width={24}
-                        height={24}
-                        className="rounded"
-                      />
-                      <p>
-                        {
-                          companies.find(
-                            (option) => option.value === selectedCompanyOption
-                          )?.label
-                        }
-                      </p>
-                    </div>
-
-                    {isCompanyDropdownOpen && (
-                      <div className="absolute mt-2 bg-white border rounded-lg shadow-lg w-full">
-                        {companies.map((option) => (
-                          <div
-                            key={option.value}
-                            className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-gray-100"
-                            onClick={() =>
-                              handleCompanyOptionSelect(option.value)
-                            }
-                          >
-                            <img
-                              src={option.image}
-                              alt={option.label}
-                              width={24}
-                              height={24}
-                              className="rounded"
-                            />
-                            <p>{option.label}</p>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    <button className="p-2 hover:bg-gray-100 rounded-lg">
                       <Pencil className="w-4 h-4" />
                     </button>
                   </div>
-                </div>
-                <a
-                  href="#"
-                  className="absolute right-0 -bottom-6 text-sm text-blue-500 hover:underline"
-                >
-                  Add New Employer
-                </a>
+                )}
+
+                {/* Dropdown List */}
+                {isCompanyDropdownOpen && (
+                  <div className="absolute mt-2 bg-white border rounded-lg shadow-lg w-full z-10">
+                    {companies.map((option) => (
+                      <div
+                        key={option.value}
+                        className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-gray-100"
+                        onClick={() => {
+                          handleCompanyOptionSelect(option.value);
+                          setIsCompanyDropdownOpen(false);
+                        }}
+                      >
+                        <img
+                          src={option.image}
+                          alt={option.label}
+                          width={24}
+                          height={24}
+                          className="rounded"
+                        />
+                        <p>{option.label}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -421,32 +529,58 @@ export default function NewJob() {
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <label className="text-sm font-medium">Outlet</label>
-              <div className="flex items-center gap-2">
-                <div className="flex-1 flex items-center gap-2 px-3 py-2 border rounded-lg">
-                  {/* <img
-                    src="/placeholder.svg"
-                    alt="Domino's logo"
+              <div className="relative">
+                <div
+                  className="flex items-center gap-2 px-3 py-2 border rounded-lg cursor-pointer"
+                  onClick={() => setIsOutletDropdownOpen(!isOutletDropdownOpen)}
+                >
+                  <img
+                    src={
+                      outlets.find((option) => option.value === selectedOutlet)?.image
+                        ? `${outlets.find((option) => option.value === selectedOutlet)?.image}`
+                        : "http://localhost:3000/static/outletImage.png"
+                    }
+                    alt="Outlet logo"
                     width={24}
                     height={24}
-                  /> */}
-                  <input
-                    type="text"
-                    
-                    className="flex-1 border-none p-0 focus:outline-none"
-                    name="outletName"
-                    value={formData.outletName}
-                    onChange={handleInputChange}
-                    required
+                    className="rounded"
                   />
-                  {/* <img
-                    src="/assets/dominos-logo.png"
-                    alt="Domino's logo"
-                    className="w-42 h-30"
-                  /> */}
-                  <button className="p-2 hover:bg-gray-100 rounded-lg">
+                  <p className="flex-1">
+                    {outlets.find((option) => option.value === selectedOutlet)
+                      ?.label || "Select Outlet"}
+                  </p>
+                  <button
+                    className="p-1 rounded-lg hover:bg-gray-100"
+                    onClick={(e) => e.stopPropagation()} // Prevent dropdown toggle
+                  >
                     <Pencil className="w-4 h-4" />
                   </button>
                 </div>
+
+                {/* Dropdown List */}
+                {isOutletDropdownOpen && (
+                  <div className="absolute mt-2 bg-white border rounded-lg shadow-lg w-full z-10">
+                    {outlets.map((option) => (
+                      <div
+                        key={option.value}
+                        className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-gray-100"
+                        onClick={() => {
+                          setSelectedOutlet(option.value);
+                          setIsOutletDropdownOpen(false);
+                        }}
+                      >
+                        <img
+                          src={option.image}
+                          alt={option.label}
+                          width={24}
+                          height={24}
+                          className="rounded"
+                        />
+                        <p>{option.label}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
             <div className="space-y-2">
@@ -533,7 +667,6 @@ export default function NewJob() {
                   name="location"
                   value={formData.location}
                   onChange={handleInputChange}
-                 
                   className="flex-1 border-none p-0 focus:outline-none"
                   required
                 />
@@ -546,16 +679,16 @@ export default function NewJob() {
               <label className="text-sm font-medium">Industry</label>
               <div className="flex-1 flex items-center gap-2 px-3 py-2 border rounded-lg">
                 <select
-                  defaultValue="hotel"
+                  defaultValue="Hotel"
                   name="industry"
                   value={formData.industry}
                   onChange={handleInputChange}
                   className="flex-1 border-none p-0 focus:outline-none"
                 >
-                  <option value="hotel">Hotel</option>
-                  <option value="restaurant">Restaurant</option>
-                  <option value="retail">Retail</option>
-                  <option value="healthcare">Healthcare</option>
+                  <option value="Hotel">Hotel</option>
+                  <option value="Restaurant">Restaurant</option>
+                  <option value="Retail">Retail</option>
+                  <option value="Healthcare">Healthcare</option>
                 </select>
                 <button className="p-2 hover:bg-gray-100 rounded-lg">
                   <Pencil className="w-4 h-4" />
