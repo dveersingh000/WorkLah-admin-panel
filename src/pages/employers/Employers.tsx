@@ -12,25 +12,9 @@ import {
 } from "lucide-react";
 import Pagination from "../../components/Pagination";
 import { axiosInstance } from "../../lib/authInstances";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { CustomScrollbar } from "../../components/layout/CustomScrollbar";
 
-// interface Employer {
-//   employerId: string;
-//   companyLogo: string;
-//   companyLegalName: string;
-//   mainContactPerson: string;
-//   jobPosition: string;
-//   mainContactNumber: string;
-//   companyEmail: string;
-//   companyNumber: string;
-//   accountManager: string;
-//   industry: string;
-//   outlets: number;
-//   contractStartDate: string;
-//   contractEndDate: string;
-//   serviceAgreement: string;
-// }
 interface Employer {
   employerId: string;
   companyLegalName: string;
@@ -48,72 +32,6 @@ interface Employer {
   serviceAgreement: string;
 }
 
-const employer: Employer[] = [
-  {
-    employerId: "EMP001",
-    companyLogo: "/assets/company.png",
-    companyLegalName: "Tech Innovations Ltd",
-    mainContactPerson: "John Doe",
-    jobPosition: "CEO",
-    mainContactNumber: "+1 123-456-7890",
-    companyEmail: "contact@techinnovations.com",
-    companyNumber: "123456789",
-    accountManager: "Alice Smith",
-    industry: "Software",
-    outlets: 5,
-    contractStartDate: "2024-01-01",
-    contractEndDate: "2025-01-01",
-    serviceAgreement: "In Discussion",
-  },
-  {
-    employerId: "EMP002",
-    companyLogo: "/assets/company.png",
-    companyLegalName: "Green Energy Corp",
-    mainContactPerson: "Jane Doe",
-    jobPosition: "Managing Director",
-    mainContactNumber: "+1 234-567-8901",
-    companyEmail: "info@greenenergy.com",
-    companyNumber: "987654321",
-    accountManager: "Bob Johnson",
-    industry: "Renewable Energy",
-    outlets: 8,
-    contractStartDate: "2023-05-15",
-    contractEndDate: "2026-05-15",
-    serviceAgreement: "Completed",
-  },
-  {
-    employerId: "EMP003",
-    companyLogo: "/assets/company.png",
-    companyLegalName: "Global Retailers Inc",
-    mainContactPerson: "Michael Smith",
-    jobPosition: "Operations Head",
-    mainContactNumber: "+1 345-678-9012",
-    companyEmail: "support@globalretail.com",
-    companyNumber: "1122334455",
-    accountManager: "Charlie Davis",
-    industry: "Retail",
-    outlets: 12,
-    contractStartDate: "2022-09-10",
-    contractEndDate: "2024-09-10",
-    serviceAgreement: "Expired",
-  },
-];
-
-// const employer: Employer[] = Array(5).fill({
-//   companyName: [
-//     "/public/assets/company.png",
-//     "RIGHT SERVICE PTE. LTD.",
-//     "SengKang, Singapore",
-//   ],
-//   companyEmail: "rightservice123@gmail.com",
-//   activeJobPostings: 20,
-//   outlets: 5,
-//   contractStartDate: "03/05/2003",
-//   contractEndDate: "04/10/2026",
-//   verificationStatus: "Verified",
-// });
-
-
 const EmployerTable: React.FC = () => {
   const [isPopupOpen, setIsPopupOpen] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -123,28 +41,40 @@ const EmployerTable: React.FC = () => {
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
 
   const navigate = useNavigate()
+  const images = "http://localhost:3000"
 
-  useEffect(() => {
+  // useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await axiosInstance.get(`/employers?page=${currentPage}&limit=10`);
-        const employerData = response.data.data.map((employer: any) => ({
-          employerId: `#${employer._id.slice(-4)}`, // Fix: Map Employer ID
-          companyLogo: employer.companyLogo || "/assets/company.png",
-          companyLegalName: employer.companyName, // Fix: Map Company Legal Name
-          mainContactPerson: employer.mainContactPerson,
-          jobPosition: employer.jobPosition,
-          mainContactNumber: employer.contactNumber, // Fix: Map Main Contact Number
-          companyEmail: employer.companyEmail,
-          companyNumber: employer.companyNumber,
-          accountManager: employer.accountManager,
-          industry: employer.industry,
-          outlets: employer.outletCount || 0, // Fix: Ensure Outlets Count is Shown
-          contractStartDate: employer.contractStartDate.substring(0, 10),
-          contractEndDate: employer.contractEndDate.substring(0, 10),
-          serviceAgreement: employer.serviceAgreement,
-        }));
+  
+  
+        if (!response.data || !Array.isArray(response.data.employers)) {
+          throw new Error("Invalid API response format");
+        }
+  
+        const employerData = response.data.employers.map((employer: any) => ({
+          employerId: `#${employer._id.slice(-4)}`,
+          companyLogo: employer.companyLogo ? `${images}${employer.companyLogo}`: "/assets/company.png",
 
+          companyLegalName: employer.companyLegalName || employer.companyName,
+          hqAddress: employer.hqAddress,
+          mainContactPerson: employer.mainContactPersonName || "N/A", // Fix Key
+          jobPosition: employer.jobPosition || "N/A",
+          mainContactNumber: employer.mainContactPersonNumber || "N/A", // Fix Key
+          companyEmail: employer.companyEmail || "N/A",
+          companyNumber: employer.companyNumber || "N/A",
+          accountManager: employer.accountManager || "N/A",
+          industry: employer.industry || "N/A",
+          // outlets: employer.outlets || 0,
+          outlets: Array.isArray(employer.outlets) ? employer.outlets.length : 0, 
+          contractStartDate: employer.contractStartDate?.substring(0, 10) || "N/A",
+          contractEndDate: employer.contractEndDate?.substring(0, 10) || "N/A",
+          serviceAgreement: employer.serviceAgreement || "N/A",
+          employerOriginalId: employer._id
+        }));
+  
+  
         setEmployers(employerData);
         setTotalPages(response.data.totalPages);
         setErrorMessage(null);
@@ -153,9 +83,15 @@ const EmployerTable: React.FC = () => {
         console.error("Error fetching data:", error);
       }
     };
+  
+  //   fetchData();
+  // }, [currentPage]);
 
+  useEffect(() => {
     fetchData();
   }, [currentPage]);
+  
+  
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -172,6 +108,25 @@ const EmployerTable: React.FC = () => {
     setIsPopupOpen(null);
   };
 
+  const handleDelete = async (id: string) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this employer?");
+    if (!confirmDelete) return;
+  
+    try {
+      await axiosInstance.delete(`/employers/${id}`);
+      
+      setEmployers((prevEmployers) => prevEmployers.filter(emp => emp.employerId !== id));
+  
+      alert("Employer deleted successfully!");
+
+      fetchData();
+    } catch (error) {
+      console.error("Error deleting employer:", error);
+      alert("Failed to delete employer. Please try again.");
+    }
+  };
+  
+
   return (
     <div className="p-4 flex flex-col justify-between min-h-screen">
       <div>
@@ -179,9 +134,11 @@ const EmployerTable: React.FC = () => {
           <h1 className="text-[36px] font-[500] text-[#1F2937]">Employers</h1>
 
           <div className="flex items-center gap-4 ">
+            <Link to="/employers/add-employer">
             <button className="p-[14px] rounded-[26px] shadow-lg bg-[#FFFFFF] hover:bg-gray-50 ">
               <Plus className="w-[24px] h-[24px]" />
             </button>
+            </Link>
             <button className="p-[14px] rounded-[26px] shadow-lg bg-dark hover:bg-slate-950 ">
               <Filter
                 className="w-[20px] h-[20px]"
@@ -316,7 +273,7 @@ const EmployerTable: React.FC = () => {
                       <div className="absolute top-[30%] right-12 mt-1 w-32 bg-white shadow-md border border-gray-300 rounded-md z-10">
                         <button
                           className="flex items-center gap-2 p-2 w-full text-left text-gray-700 hover:bg-gray-100"
-                          onClick={() => handleActionClick("View", index)}
+                          onClick={() => handleActionClick("View", employers[index].employerOriginalId)}
                         >
                           <Eye size={16} />
                           View
@@ -339,11 +296,12 @@ const EmployerTable: React.FC = () => {
                         </button>
                         <button
                           className="flex items-center gap-2 p-2 w-full text-left text-[#E34E30] hover:bg-gray-100"
-                          onClick={() => handleActionClick("Remove", index)}
+                          onClick={() => handleDelete(employers[index].employerOriginalId)}
                         >
                           <Trash2 size={16} color="#E34E30" />
                           Remove
                         </button>
+
                       </div>
                     )}
                   </td>

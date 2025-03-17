@@ -56,8 +56,6 @@ interface JobRow {
   status: "Active" | "Upcoming" | "Cancelled" | "Completed";
 }
 
-
-
 const JobManagement = () => {
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -71,6 +69,8 @@ const JobManagement = () => {
   const [allData, setAllData] = useState({});
   const [isPopupOpen, setIsPopupOpen] = useState<number | null>(null);
   const [jobsData, setJobsData] = useState([]);
+  const [totalData, setTotalData] = useState([]);
+  console.log("jobsData", jobsData);
   const [startDate, setStartDate] = useState(new Date("2024-01-01"));
   const [endDate, setEndDate] = useState(new Date("2024-12-31"));
   const [isLimitPopupOpen, setIsLimitPopupOpen] = useState(false);
@@ -80,8 +80,9 @@ const JobManagement = () => {
   const [cancelledJobs, setCancelledJobs] = useState(0);
   const [attendanceRate, setAttendanceRate] = useState(0);
 
-
   const popupRef = useRef<HTMLDivElement>(null);
+
+  const companyImage = "http://localhost:3000";
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -135,8 +136,6 @@ const JobManagement = () => {
     }
   };
 
- 
-
   const getBorderColor = (status: string) => {
     switch (status) {
       case "Active":
@@ -160,15 +159,16 @@ const JobManagement = () => {
 
   const fetchJobDetails = async (params) => {
     const queryString = new URLSearchParams(params).toString();
-    
+
     try {
-      const response = await axiosInstance.get(`/jobs?${queryString}`);
-      
-      console.log("API Response:", response.data); // ✅ Check if data is fetched
-  
+      const response = await axiosInstance.get(`/admin/jobs?${queryString}`);
+
+      // console.log("API Response:", response.data); // ✅ Check if data is fetched
+
       if (response.data?.jobs) {
-        console.log("Setting Jobs Data:", response.data.jobs); // ✅ Verify before updating state
+        // console.log("Setting Jobs Data:", response.data.jobs); // ✅ Verify before updating state
         setJobsData(response.data.jobs); // ✅ Set the job data
+        setTotalData(response.data);
       } else {
         console.warn("No jobs found in response");
         setJobsData([]); // Set empty array to prevent UI crash
@@ -177,18 +177,17 @@ const JobManagement = () => {
       console.error("Error fetching job details:", error);
     }
   };
-  
 
   const updateJobStatus = async (jobId, status) => {
     try {
       await axiosInstance.put(`/jobs/${jobId}`, { status });
-      console.log(`Job ${jobId} status updated to ${status}`);
+      // console.log(`Job ${jobId} status updated to ${status}`);
     } catch (error) {
       console.error(`Failed to update job ${jobId} status:`, error);
     }
   };
 
-  console.log(jobsData);
+  // console.log(jobsData);
   useEffect(() => {
     fetchJobDetails(queryParams);
   }, [queryParams]);
@@ -198,7 +197,6 @@ const JobManagement = () => {
   };
 
   const handleActionClick = (action: string, id: number) => {
-    
     // alert(`Action: ${action}, Row: ${index}`);
     if (action === "View") {
       navigate(`/jobs/${id}`);
@@ -206,43 +204,46 @@ const JobManagement = () => {
     if(action==="Modify"){
       navigate(`/jobs/${id}/modify`)
     }
-    if(action ==="Cancel Job"){
+    if (action === "Cancel Job") {
       axiosInstance
-            .delete(`/jobs/${id}`)
-            .then((response) => {
-              console.log('Job deleted');
-              
-              fetchJobDetails(queryParams);
-               // Assign the jobs array or an empty array
-            })
-            .catch((error) => {
-              console.error("Error fetching job details:", error);
-            });
+        .delete(`/admin/jobs/${id}`)
+        .then((response) => {
+          console.log("Job deleted");
+
+          fetchJobDetails(queryParams);
+          // Assign the jobs array or an empty array
+        })
+        .catch((error) => {
+          console.error("Error fetching job details:", error);
+        });
     }
     setIsPopupOpen(null);
   };
 
   useEffect(() => {
-    
     const calculateStats = () => {
       if (jobsData && jobsData.length > 0) {
         const active = jobsData.filter((job) => job.status === "Active").length;
-        const upcoming = jobsData.filter((job) => job.status === "Ongoing").length;
-  
+        const upcoming = jobsData.filter(
+          (job) => job.status === "Ongoing"
+        ).length;
+
         setActiveJobs(active);
         setUpcomingJobs(upcoming);
-  
+
         // Calculate average attendance rate
-        const totalAttendance = jobsData.reduce((acc, job) => acc + (job.attendanceRate || 0), 0);
-        const avgAttendance = jobsData.length > 0 ? totalAttendance / jobsData.length : 0;
+        const totalAttendance = jobsData.reduce(
+          (acc, job) => acc + (job.attendanceRate || 0),
+          0
+        );
+        const avgAttendance =
+          jobsData.length > 0 ? totalAttendance / jobsData.length : 0;
         setAttendanceRate(avgAttendance.toFixed(2)); // Round to 2 decimal places
       }
     };
-  
+
     calculateStats();
   }, [jobsData]);
-
-   
 
   return (
     <div className="p-5 max-w-7xl mx-auto font-sans">
@@ -313,21 +314,37 @@ const JobManagement = () => {
           style={{ boxShadow: "0px 9px 20px 9px rgba(0, 0, 0, 0.09)" }}
         >
           <div className="rounded-lg flex flex-col items-center">
-        <h2 className="text-[48px] leading-[60px] font-medium text-[#049609]">{activeJobs}</h2>
-        <p className="text-[20px] leading-[25px] font-medium text-[#4c4c4c]">Total Active Jobs</p>
-      </div>
-      <div className="rounded-lg flex flex-col items-center">
-        <h2 className="text-[48px] leading-[60px] font-medium text-[#e39127]">{upcomingJobs}</h2>
-        <p className="text-[20px] leading-[25px] font-medium text-[#4c4c4c]">Upcoming Jobs</p>
-      </div>
-      <div className="rounded-lg flex flex-col items-center">
-        <h2 className="text-[48px] leading-[60px] font-medium text-[#fd5426]">{cancelledJobs}</h2>
-        <p className="text-[20px] leading-[25px] font-medium text-[#4c4c4c]">Cancelled Jobs</p>
-      </div>
-      <div className="rounded-lg flex flex-col items-center">
-        <h2 className="text-[48px] leading-[60px] font-medium text-[#0099ff]">{attendanceRate}%</h2>
-        <p className="text-[20px] leading-[25px] font-medium text-[#4c4c4c]">Average Attendance Rate</p>
-      </div>
+            <h2 className="text-[48px] leading-[60px] font-medium text-[#049609]">
+              {totalData.totalActiveJobs}
+            </h2>
+            <p className="text-[20px] leading-[25px] font-medium text-[#4c4c4c]">
+              Total Active Jobs
+            </p>
+          </div>
+          <div className="rounded-lg flex flex-col items-center">
+            <h2 className="text-[48px] leading-[60px] font-medium text-[#e39127]">
+              {totalData.totalUpcomingJobs}
+            </h2>
+            <p className="text-[20px] leading-[25px] font-medium text-[#4c4c4c]">
+              Upcoming Jobs
+            </p>
+          </div>
+          <div className="rounded-lg flex flex-col items-center">
+            <h2 className="text-[48px] leading-[60px] font-medium text-[#fd5426]">
+              {totalData.totalCancelledJobs}
+            </h2>
+            <p className="text-[20px] leading-[25px] font-medium text-[#4c4c4c]">
+              Cancelled Jobs
+            </p>
+          </div>
+          <div className="rounded-lg flex flex-col items-center">
+            <h2 className="text-[48px] leading-[60px] font-medium text-[#0099ff]">
+              {totalData.averageAttendanceRate}
+            </h2>
+            <p className="text-[20px] leading-[25px] font-medium text-[#4c4c4c]">
+              Average Attendance Rate
+            </p>
+          </div>
         </div>
 
         {/* Job Types Filter */}
@@ -368,21 +385,21 @@ const JobManagement = () => {
               <p>Select Employer</p>
               <div>
                 <div className="flex items-center justify-end gap-4">
-                <button
-                  className="rounded-[26px] shadow-lg bg-dark hover:bg-slate-950 "
-                  onClick={() => setIsEmployerPopupOpen(!isEmployerPopupOpen)}
-                >
-                  <FaCaretDown />
+                  <button
+                    className="rounded-[26px] shadow-lg bg-dark hover:bg-slate-950 "
+                    onClick={() => setIsEmployerPopupOpen(!isEmployerPopupOpen)}
+                  >
+                    <FaCaretDown />
                   </button>
 
                   {isEmployerPopupOpen && (
-                  <div
-                    ref={popupRef}
-                    className="absolute left-[1%] top-[18%] mt-2  bg-white border rounded-[20px] shadow-lg z-50"
-                  >
-                    <JobEmployerFilter/>
-                  </div>
-                )}
+                    <div
+                      ref={popupRef}
+                      className="absolute left-[1%] top-[18%] mt-2  bg-white border rounded-[20px] shadow-lg z-50"
+                    >
+                      <JobEmployerFilter />
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -448,108 +465,181 @@ const JobManagement = () => {
               </tr>
             </thead>
             <tbody>
-  {jobsData.length > 0 ? (
-    jobsData.map((row, index) => (
-      <tr key={row._id || index} className="border-b border-gray-300">
-        {/* Job Name & ID */}
-        <td className="p-4 text-left truncate border-l border-gray-300">
-          <div className={`${getBorderColor(row.jobStatus)} pl-2`}>
-            <div className="font-medium">{row.jobName || "N/A"}</div>
-            <div className="text-sm text-gray-500">
-              Job Id: #{convertIdToFourDigits(row._id)}
-            </div>
-          </div>
-        </td>
+              {jobsData.length > 0 ? (
+                jobsData.map((row, index) => (
+                  <tr
+                    key={row._id || index}
+                    className="border-b border-gray-300"
+                  >
+                    {/* Job Name & ID */}
+                    <td className="p-4 text-left truncate border-l border-gray-300">
+                      <div className={`${getBorderColor(row.jobStatus)} pl-2`}>
+                        <div className="font-medium">
+                          {row.jobName || "N/A"}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          Job Id: #{convertIdToFourDigits(row._id)}
+                        </div>
+                      </div>
+                    </td>
+                    {/* Job Date */}
+                    <td className="p-4 text-center truncate border-l border-gray-300">
+                      {row.date ? formatDate(row.date) : "N/A"}
+                    </td>
+                    {/* Number of Shifts */}
+                    <td className="p-4 text-center truncate border-l border-gray-300">
+                      {row.shifts?.length || "0"}
+                    </td>
+                    {/* Shift Timings */}
+                    <td className="p-4 text-center truncate border-l border-gray-300">
+                      <div className="flex flex-col gap-2">
+                        {row.shifts?.length > 0
+                          ? row.shifts.map((shift, i) => (
+                              <div
+                                key={i}
+                                className="bg-[#048BE1] px-2.5 py-1 rounded-full font-medium text-white"
+                              >
+                                {`${shift.startTime} - ${shift.endTime}`}
+                              </div>
+                            ))
+                          : "N/A"}
+                      </div>
+                    </td>
+                    {/* Shift ID */}
+                    <td className="p-4 text-center truncate border-l border-gray-300">
+                      {row.shifts?.length > 0
+                        ? row.shifts.map((shift, i) => (
+                            <div key={i}>
+                              {convertIdToFourDigits(shift.shiftId)}
+                              <br />
+                            </div>
+                          ))
+                        : "N/A"}
+                    </td>
 
-        {/* Job Date */}
-        <td className="p-4 text-center truncate border-l border-gray-300">
-          {row.showDates?.length > 0 ? formatDate(row.showDates[0]) : "N/A"}
-        </td>
+                    {/* Employer */}
+                    <td className="p-4 text-left truncate border-l border-gray-300">
+                      <img
+                        className="w-8 h-8 inline-block mr-2"
+                        src={`${companyImage}${
+                          row.employer?.logo || "/static/company.png"
+                        }`}
+                        alt="Company Logo"
+                      />
+                      {row.employer?.name || "N/A"}
+                    </td>
+                    {/* Outlet */}
+                    <td className="p-4 text-left truncate border-l border-gray-300">
+                      <img
+                        className="w-8 h-8 inline-block mr-2"
+                        src={`${companyImage}${
+                          row.outlet?.logo || "/static/company.png"
+                        }`}
+                        alt="Company Logo"
+                      />
+                      {row.outlet?.name || "N/A"}
+                      <br />
+                      <span className="text-xs">
+                        {row.outlet?.location || "N/A"}
+                      </span>
+                    </td>
+                    {/* Breaks */}
+                    {/* Breaks */}
+                    <td className="p-4 text-center truncate border-l border-gray-300">
+                      <div className="flex flex-col gap-2">
+                        {row.shifts?.length > 0
+                          ? row.shifts.map((shift, i) => {
+                              const breakParts = shift.breakIncluded.split(" "); // Splitting "1 Hrs Paid" into ["1", "Hrs", "Paid"]
+                              const breakType = breakParts[2] || ""; // Extracting "Paid" or "Unpaid"
 
-        {/* Number of Shifts */}
-        <td className="p-4 text-center truncate border-l border-gray-300">
-          {row.shiftsAvailable?.length || "0"}
-        </td>
+                              return (
+                                <div key={i} className="font-medium">
+                                  <span className="text-black">{`${breakParts[0]} ${breakParts[1]} `}</span>
+                                  <span
+                                    className={
+                                      breakType === "Paid"
+                                        ? "text-green-600"
+                                        : "text-red-600"
+                                    }
+                                  >
+                                    {breakType}
+                                  </span>
+                                </div>
+                              );
+                            })
+                          : "N/A"}
+                      </div>
+                    </td>
 
-        {/* Shift Timings */}
-        <td className="p-4 text-center truncate border-l border-gray-300">
-          <div className="flex flex-col gap-2">
-            {row.shiftsAvailable?.map((shift, i) => (
-              <div key={i} className="bg-[#048BE1] px-2.5 py-1 rounded-full font-medium text-white">
-                {shift}
-              </div>
-            )) || "N/A"}
-          </div>
-        </td>
-
-        {/* Employer Name & Logo */}
-        <td className="p-4 text-left truncate border-l border-gray-300 whitespace-nowrap w-max">
-          <div className="flex gap-2 w-max">
-            <img className="w-8 h-8" src={row.employer?.companyLogo || "/static/company.png"} alt="Company Logo" />
-            <div className="flex flex-col">
-              <p className="w-max">{row.employer?.companyName || "N/A"}</p>
-            </div>
-          </div>
-        </td>
-
-        {/* Outlet Details */}
-        <td className="p-4 text-left truncate border-l border-gray-300">
-          <div className="flex items-center gap-2">
-            <img className="w-18 h-4" src={row.outlet?.outletImage || "/static/defaultOutlet.png"} alt="Outlet" />
-            <div className="text-sm text-gray-500">{row.outlet?.outletName || "N/A"}</div>
-          </div>
-        </td>
-
-        {/* Break Hours & Type */}
-        <td className="p-4 text-center truncate border-l border-gray-300">
-          {row.breakHours ? `${row.breakHours} Hrs` : "N/A"} ({row.breakType})
-        </td>
-
-        {/* Total Wage */}
-        <td className="p-4 text-center truncate border-l border-gray-300">
-          {row.totalPotentialWages ? `$${row.totalPotentialWages}` : "N/A"}
-        </td>
-
-        {/* Job Status */}
-        <td className="p-4 text-center truncate border-l border-gray-300">
-          <span className={`px-2.5 py-1 rounded-full text-sm font-medium ${getStatusColor(row.jobStatus)}`}>
-            {row.jobStatus}
-          </span>
-        </td>
-
-        {/* Action Buttons */}
-        <td className="p-4 text-center truncate border-l border-gray-300">
-          <button className="p-2 hover:bg-gray-100 rounded-full" onClick={() => handlePopupToggle(index)}>
-            <MoreVertical className="h-4 w-4" />
-          </button>
-          {isPopupOpen === index && (
-            <div className="absolute top-[30%] right-14 mt-1 w-32 bg-white shadow-md border border-gray-300 rounded-md z-10">
-              <button className="flex items-center gap-2 p-2 w-full text-left text-gray-700 hover:bg-gray-100" onClick={() => handleActionClick("View", row._id)}>
-                <Eye size={16} />
-                View
-              </button>
-              <button className="flex items-center gap-2 p-2 w-full text-left text-gray-700 hover:bg-gray-100" onClick={() => handleActionClick("Modify", row._id)}>
-                <Edit size={16} />
-                Modify
-              </button>
-              <button className="flex items-center gap-2 p-2 w-full text-left text-[#E34E30] hover:bg-gray-100" onClick={() => handleActionClick("Cancel Job", row._id)}>
-                <Ban size={16} color="#E34E30" />
-                Cancel Job
-              </button>
-            </div>
-          )}
-        </td>
-      </tr>
-    ))
-  ) : (
-    <tr>
-      <td colSpan="9" className="text-center py-4">
-        No jobs available
-      </td>
-    </tr>
-  )}
-</tbody>
-
+                    {/* Total Duration */}
+                    <td className="p-4 text-center truncate border-l border-gray-300">
+                      {row.shifts?.[0]?.duration || "N/A"}
+                    </td>
+                    {/* Vacancy Users */}
+                    <td className="p-4 text-center truncate border-l border-gray-300">
+                      {row.vacancyUsers || "0"}
+                    </td>
+                    {/* Standby Users */}
+                    <td className="p-4 text-center truncate border-l border-gray-300">
+                      {row.standbyUsers || "0"}
+                    </td>
+                    {/* Total Wage */}
+                    <td className="p-4 text-center truncate border-l border-gray-300">
+                      {row.totalWage || "N/A"}
+                    </td>
+                    {/* Job Status */}
+                    <td className="p-4 text-center truncate border-l border-gray-300">
+                      <span
+                        className={`px-2.5 py-1 rounded-full text-sm font-medium ${getStatusColor(
+                          row.jobStatus
+                        )}`}
+                      >
+                        {row.jobStatus || "N/A"}
+                      </span>
+                    </td>
+                    {/* Actions */}
+                    <td className="p-4 text-center truncate border-l border-gray-300">
+                      <button
+                        className="p-2 hover:bg-gray-100 rounded-full"
+                        onClick={() => handlePopupToggle(index)}
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </button>
+                      {isPopupOpen === index && (
+                        <div className="absolute top-[30%] right-14 mt-1 w-32 bg-white shadow-md border border-gray-300 rounded-md z-10">
+                          <button
+                            className="flex items-center gap-2 p-2 w-full text-left text-gray-700 hover:bg-gray-100"
+                            onClick={() => handleActionClick("View", row._id)}
+                          >
+                            <Eye size={16} /> View
+                          </button>
+                          <button
+                            className="flex items-center gap-2 p-2 w-full text-left text-gray-700 hover:bg-gray-100"
+                            onClick={() => handleActionClick("Modify", row._id)}
+                          >
+                            <Edit size={16} /> Modify
+                          </button>
+                          <button
+                            className="flex items-center gap-2 p-2 w-full text-left text-[#E34E30] hover:bg-gray-100"
+                            onClick={() =>
+                              handleActionClick("Cancel Job", row._id)
+                            }
+                          >
+                            <Ban size={16} color="#E34E30" /> Cancel Job
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="14" className="text-center py-4">
+                    No jobs available
+                  </td>
+                </tr>
+              )}
+            </tbody>
           </table>
         </div>
 

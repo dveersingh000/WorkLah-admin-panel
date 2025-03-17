@@ -15,7 +15,7 @@ import {
   Image,
   RotateCcw,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FaRegIdCard } from "react-icons/fa";
 import {
   MdOutlineDateRange,
@@ -29,9 +29,10 @@ import { FiEdit3 } from "react-icons/fi";
 import { FaHandHoldingWater } from "react-icons/fa";
 import { TbUserHexagon } from "react-icons/tb";
 
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import JobHistory from "../../components/employerDetail/JobHistory";
 import WorkHistory from "../../components/employerDetail/WorkHistory";
+import { axiosInstance } from "../../lib/authInstances";
 
 interface PersonalDetails {
   candidateId: string;
@@ -60,7 +61,10 @@ interface ActiveJobs {
 }
 
 export default function ProfileDashboard() {
+  const { id } = useParams()
   const [activeTab, setActiveTab] = useState("jobHistory");
+  const [userData, setUserData] = useState<any>(null);
+  // console.log("userData", userData)
 
   const [isOpen, setIsOpen] = useState(false);
 
@@ -75,30 +79,32 @@ export default function ProfileDashboard() {
   ];
 
   const personalDetails: PersonalDetails = {
-    candidateId: "24575",
-    contactNumber: "+85232454",
-    dob: "05 - 10 -1992",
-    gender: "Male",
-    nric: "XXXXXX4575",
-    nationality: "Singapore",
-    paynowNum: "4512-1321-2312",
-    race: "Korean",
-    foodHygineCert: "112131842",
-    icNumber: "451213454",
+    candidateId: userData?.candidateProfile?.candidateId || "N/A",
+    contactNumber: userData?.candidateProfile?.personalDetails?.contactNumber || "N/A",
+    dob: userData?.candidateProfile?.personalDetails?.dob || "N/A",
+    gender: userData?.candidateProfile?.personalDetails?.gender || "N/A",
+    nric: userData?.candidateProfile?.personalDetails?.nric || "N/A",
+    nationality: userData?.candidateProfile?.personalDetails?.nationality || "N/A",
+    paynowNum: userData?.candidateProfile?.personalDetails?.paynowNumber || "N/A",
+    race: userData?.candidateProfile?.personalDetails?.race || "N/A",
+    foodHygineCert: userData?.candidateProfile?.personalDetails?.foodHygieneCert || "N/A",
+    icNumber: userData?.candidateProfile?.personalDetails?.icNumber || "N/A",
   };
+  
 
   const activeJobs: ActiveJobs = {
-    job: "Tray Collecter",
-    ongoingShift: "07:00 PM ---- 11:00 PM",
-    clockedIn: "07:06 AM",
-    employer: "Right Service PTE. LTD.",
-    duration: "4 Hrs",
-    clockedOut: " -- ",
-    date: "10 Sep, 24",
-    totalWage: " $72",
-    wageGenerated: "$--",
-    rateType: "Flat Rate",
+    job: userData?.activeJob?.jobName || "N/A",
+    ongoingShift: `${userData?.activeJob?.shiftStartTime || "N/A"} ---- ${userData?.activeJob?.shiftEndTime || "N/A"}`,
+    clockedIn: userData?.activeJob?.clockedIn || "N/A",
+    employer: userData?.activeJob?.employer || "N/A",
+    duration: userData?.activeJob?.duration || "N/A",
+    clockedOut: userData?.activeJob?.clockedOut || "N/A",
+    date: userData?.activeJob?.date || "N/A",
+    totalWage: userData?.activeJob?.totalWage || "N/A",
+    wageGenerated: userData?.activeJob?.wageGenerated || "N/A",
+    rateType: userData?.activeJob?.rateType || "N/A",
   };
+  
 
   const customLabels: Record<string, string> = {
     candidateId: "Candidate ID",
@@ -125,6 +131,18 @@ export default function ProfileDashboard() {
     wageGenerated: "Wage Generated",
     rateType: "Rate Type",
   };
+
+  useEffect(() => {
+    // Fetch employees from API
+    axiosInstance.get(`/admin/candidates/${id}`)
+        .then(response => {
+          // console.log("response", response.data)
+          setUserData(response.data);
+        })
+        .catch(error => {
+            console.error("Error fetching employees:", error);
+        });
+  }, []);
 
   const getIcon = (key: string) => {
     switch (key) {
@@ -209,7 +227,7 @@ export default function ProfileDashboard() {
               <div className="flex items-center gap-4">
                 <div className="relative">
                   <img
-                    src="/assets/teamm1.svg"
+                    src={userData?.candidateProfile?.profilePicture || "/assets/teamm1.svg"}
                     alt="Profile"
                     width={80}
                     height={80}
@@ -218,13 +236,13 @@ export default function ProfileDashboard() {
                 </div>
                 <div className="flex flex-col items-start gap-1">
                   <h1 className=" text-[24px] leading-[30px] font-medium">
-                    Ethan Carter
+                    {userData?.candidateProfile?.fullName || "N/A"}
                   </h1>
                   <p className="text-[16px] leading-[24px] font-medium text-[#4c4c4c]">
                     Work pass status:{" "}
                     <span className="text-[#049609] text-[16px] leading-[24px] font-medium ml-2">
                       {" "}
-                      Verified
+                      {userData?.candidateProfile?.workPassStatus || "N/A"}
                     </span>
                   </p>
                 </div>
@@ -234,7 +252,7 @@ export default function ProfileDashboard() {
                 <p className="text-[16px] leading-[24px] font-medium text-[#4c4c4c]">
                   Registered at:{" "}
                   <span className="text-[#000000] text-[16px] leading-[24px] font-medium ml-2">
-                    21/09/2008, 09:30AM
+                  {userData?.candidateProfile?.registeredAt || "N/A"}
                   </span>
                 </p>
               </p>
@@ -358,12 +376,13 @@ export default function ProfileDashboard() {
             </div>
 
             {activeTab === "jobHistory" ? (
-              <JobHistory />
+              <WorkHistory workHistory={userData?.jobHistory || []} />
             ) : activeTab === "workHistory" ? (
-              <WorkHistory />
+              <JobHistory jobHistory={userData?.workHistory || {}} />
             ) : (
               <div></div>
             )}
+
           </div>
         </div>
       </div>

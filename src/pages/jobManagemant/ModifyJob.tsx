@@ -1,16 +1,8 @@
-"use client";
-
 import {
   ArrowLeft,
   Briefcase,
   CalendarIcon,
-  Clock,
-  Delete,
-  Edit2,
-  Minus,
-  MoreVertical,
   Pencil,
-  Plus,
   Rows2,
   Trash2,
 } from "lucide-react";
@@ -18,12 +10,11 @@ import { useEffect, useState } from "react";
 import { TiDocumentText } from "react-icons/ti";
 import { axiosInstance } from "../../lib/authInstances";
 import { useNavigate, useParams } from "react-router-dom";
-import { FiEdit3 } from "react-icons/fi";
-import { FaCaretDown } from "react-icons/fa";
-import { getTodayDate } from "../../lib/utils";
+import { convertToDate, getTodayDate } from "../../lib/utils";
 
 interface JobFormData {
   jobName: string;
+  jobLogo: string;
   company: {
     name: string;
     agreementEndDate: Date;
@@ -41,7 +32,7 @@ interface JobFormData {
 }
 
 interface Shift {
-  _id: string;
+  id: number;
   startTime: { hours: string; minutes: string; period: string };
   endTime: { hours: string; minutes: string; period: string };
   vacancy: number;
@@ -52,135 +43,26 @@ interface Shift {
   rateType: string;
   payRate: number;
   totalWage: number;
-  
 }
 
 export default function ModifyJob() {
-  const [jobsData, setJobsData] = useState({});
-  const [formData, setFormData] = useState<JobFormData>({
-    jobName: "",
-    company: {
-      name: "",
-      agreementEndDate: new Date(),
-    },
-    outletName: "Domino's",
-   date: getTodayDate(), // Default date object
-   dates: [getTodayDate()], // Array of selected dates
-    location: "",
-    industry: "",
-    shifts: [],
-    requirements: {
-      jobScopeDescription: "",
-      jobRequirements: "",
-    },
-  });
-
+  const { jobId } = useParams();
+  const [selectedCompanyOption, setSelectedCompanyOption] = useState(false);
   const [isCompanyDropdownOpen, setIsCompanyDropdownOpen] = useState(false);
-  const [selectedCompanyOption, setSelectedCompanyOption] = useState(
-    "RIGHT SERVICE PTE. LTD."
-  );
-  const [shifts, setShifts] = useState<Shift[]>( []);
-  // const [shifts, setShifts] = useState<Shift[]>([
-  //   {
-  //     id: "1",
-  //     startTime: { hours: "07", minutes: "00", period: "AM" },
-  //     endTime: { hours: "11", minutes: "00", period: "AM" },
-  //     vacancy: 3,
-  //     standbyVacancy: 1,
-  //     duration: 4,
-  //     breakHours: 1,
-  //     breakType: "Paid",
-  //     rateType: "Flat rate",
-  //     payRate: 20,
-  //     totalWage: 80,
-  //     status: "Active",
-  //   },
-  //   {
-  //     id: "2",
-  //     startTime: { hours: "11", minutes: "00", period: "AM" },
-  //     endTime: { hours: "03", minutes: "00", period: "PM" },
-  //     vacancy: 3,
-  //     standbyVacancy: 1,
-  //     duration: 4,
-  //     breakHours: 1,
-  //     breakType: "Paid",
-  //     rateType: "Flat rate",
-  //     payRate: 20,
-  //     totalWage: 80,
-  //     status: "Upcoming",
-  //   },
-  //   {
-  //     id: "3",
-  //     startTime: { hours: "00", minutes: "00", period: "AM" },
-  //     endTime: { hours: "00", minutes: "00", period: "AM" },
-  //     vacancy: 3,
-  //     standbyVacancy: 1,
-  //     duration: 4,
-  //     breakHours: 1,
-  //     breakType: "Paid",
-  //     rateType: "Flat rate",
-  //     payRate: 20,
-  //     totalWage: 80,
-  //     status: "Upcoming",
-  //   },
-  // ]);
-  const companies = [
+  const [companies, setCompanies] = useState<
+    { value: string; label: string; image: string }[]
+  >([]);
+
+  const [outlets, setOutlets] = useState([]);
+  const [selectedOutlet, setSelectedOutlet] = useState(null);
+  const [isOutletDropdownOpen, setIsOutletDropdownOpen] = useState(false);
+
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const Images = "http://localhost:3000";
+  const [shifts, setShifts] = useState<Shift[]>([
     {
-      value: "RIGHT SERVICE PTE. LTD.",
-      label: "RIGHT SERVICE PTE. LTD.",
-      image: "/assets/company.png",
-    },
-    {
-      value: "Tech Solutions Pvt. Ltd.",
-      label: "Tech Solutions Pvt. Ltd.",
-      image: "/assets/company.png",
-    },
-    { value: "Company 2", label: "Company 2", image: "/assets/company.png" },
-    { value: "Company 3", label: "Company 3", image: "/assets/company.png" },
-  ];
-  const handleIncrease = (id, key, maxValue) => {
-    setShifts((prevShifts) =>
-      prevShifts.map((shift) =>
-        shift._id === id
-          ? { ...shift, [key]: Math.min(shift[key] + 1, maxValue) }
-          : shift
-      )
-    );
-  };
-
-  const handleDecrease = (id, key) => {
-    setShifts((prevShifts) =>
-      prevShifts.map((shift) =>
-        shift._id === id
-          ? { ...shift, [key]: Math.max(shift[key] - 1, 0) }
-          : shift
-      )
-    );
-  };
-  const handleCompanyOptionSelect = (value: string) => {
-    const selectedCompany = companies.find((option) => option.value === value);
-
-    // Update the selected company and formData
-    if (selectedCompany) {
-      setSelectedCompanyOption(value);
-      setFormData((prevData) => ({
-        ...prevData,
-        company: {
-          ...prevData.company,
-          name: selectedCompany.label, // Update company name in formData
-        },
-      }));
-    }
-
-    setIsCompanyDropdownOpen(false); // Close the dropdown after selection
-  };
-  const deleteShift = (id: string) => {
-    setShifts((prevShifts) => prevShifts.filter((shift) => shift.id !== id));
-  };
-
-  const addShift = () => {
-    const newShift: Shift = {
-      _id: Date.now().toString(),
+      id: 1,
       startTime: { hours: "00", minutes: "00", period: "AM" },
       endTime: { hours: "00", minutes: "00", period: "AM" },
       vacancy: 3,
@@ -191,33 +73,191 @@ export default function ModifyJob() {
       rateType: "Flat rate",
       payRate: 20,
       totalWage: 80,
-      
-    };
-    setShifts((prevShifts) => [...prevShifts, newShift]);
-  };
-  console.log(shifts);
+    },
+  ]);
 
-  const updateTime = (
-    id: string,
-    timeType: "startTime" | "endTime",
-    value: string
-  ) => {
-    setShifts((prevShifts) =>
-      prevShifts.map((shift) => {
-        if (shift.id === id) {
-          return {
-            ...shift,
-            [timeType]: value,
-          };
+  const [formData, setFormData] = useState<JobFormData>({
+    jobName: "",
+    jobLogo: "/assets/icons/plus-emoji.png",
+    company: {
+      name: "RIGHT SERVICE PTE. LTD.",
+      agreementEndDate: new Date(),
+    },
+    outletName: "",
+    date: getTodayDate(), // Default date object
+    dates: [getTodayDate()], // Array of selected dates
+    location: "",
+    industry: "",
+    shifts: [],
+    requirements: {
+      jobScopeDescription: "",
+      jobRequirements: "",
+    },
+  });
+
+  useEffect(() => {
+    const fetchEmployers = async () => {
+      try {
+        setIsLoading(true);
+        const response = await axiosInstance.get("/employers");
+
+        // Access the "employers" array inside response.data
+        const employerList = response.data.employers;
+
+        if (!Array.isArray(employerList)) {
+          throw new Error("Invalid response format");
         }
-        return shift;
-      })
-    );
-  };
 
+        // Map API response to expected format
+        const formattedEmployers = employerList.map((employer: any) => ({
+          value: employer._id, // Employer ID
+          label: employer.companyLegalName, // Company Name
+          image: `${Images}${employer.companyLogo}` || "/assets/company.png", // Default if no logo
+        }));
+
+        setCompanies(formattedEmployers);
+      } catch (err) {
+        console.error("Error fetching employers:", err);
+        setError("Failed to load employers");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchEmployers();
+  }, []);
+
+  useEffect(() => {
+    const fetchOutlets = async () => {
+      try {
+        setIsLoading(true);
+        const response = await axiosInstance.get("/outlets");
+        const outletsData = response.data.data;
+
+        // Map API data to dropdown format
+        const formattedOutlets = outletsData.map((outlet) => ({
+          value: outlet._id,
+          label: outlet.outletName,
+          // image: outlet.outletImage || "/assets/outlet-placeholder.png",
+          image:
+            `${Images}${outlet.outletImage}` ||
+            "/static/outletImage.png",
+        }));
+
+        setOutlets(formattedOutlets);
+      } catch (err) {
+        setError("Failed to load outlets");
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchOutlets();
+  }, []);
+
+  // const companies = [
+  //   {
+  //     value: "hotel",
+  //     label: "RIGHT SERVICE PTE. LTD.",
+  //     image: "/assets/company.png",
+  //   },
+  //   {
+  //     value: "restaurant",
+  //     label: "Tech Solutions Pvt. Ltd.",
+  //     image: "/assets/company.png",
+  //   },
+  //   { value: "retail", label: "Company 2", image: "/assets/company.png" },
+  //   { value: "healthcare", label: "Company 3", image: "/assets/company.png" },
+  // ];
+
+  useEffect(() => {
+    const fetchJobDetails = async () => {
+      try {
+        setIsLoading(true);
+        const response = await axiosInstance.get(`/admin/jobs/${jobId}`);
+        const jobData = response.data.job;
+
+        console.log("hiiii",jobData)
   
-  const maxStandby = 1;
-  const maxVacancy = 3;
+        // Format shifts to match local state structure
+        const formattedShifts = jobData.shifts.map((shift: any, index: number) => ({
+          id: index + 1, // Assign unique ID for local state tracking
+          startTime: {
+            hours: shift.startTime.split(":")[0],
+            minutes: shift.startTime.split(":")[1],
+            period: shift.startMeridian, // AM/PM
+          },
+          endTime: {
+            hours: shift.endTime.split(":")[0],
+            minutes: shift.endTime.split(":")[1],
+            period: shift.endMeridian, // AM/PM
+          },
+          vacancy: shift.vacancy,
+          standbyVacancy: shift.standbyVacancy,
+          duration: shift.totalDuration,
+          breakHours: shift.breakIncluded,
+          breakType: shift.breakType,
+          rateType: shift.rateType,
+          payRate: shift.payRate,
+          totalWage: shift.totalWage,
+        }));
+  
+        // Set form data
+        setFormData({
+          jobName: jobData.jobName,
+          jobLogo: jobData.jobLogo || "/assets/icons/plus-emoji.png",
+          company: {
+            name: jobData.company?.name || "RIGHT SERVICE PTE. LTD.",
+            agreementEndDate: new Date(jobData.company?.agreementEndDate),
+          },
+          outletName: jobData.outletName || "",
+          date: {
+            day: new Date(jobData.date).getDate(),
+            month: new Date(jobData.date).getMonth() + 1,
+            year: new Date(jobData.date).getFullYear(),
+          },
+          dates: jobData.dates?.map((d: string) => ({
+            day: new Date(d).getDate(),
+            month: new Date(d).getMonth() + 1,
+            year: new Date(d).getFullYear(),
+          })) || [],
+          location: jobData.location || "",
+          industry: jobData.industry || "Hotel",
+          shifts: formattedShifts,
+          requirements: {
+            jobScopeDescription: jobData.jobScope?.join(", ") || "",
+            jobRequirements: jobData.jobRequirements?.join(", ") || "",
+          },
+        });
+        setSelectedCompanyOption(jobData.employer._id || null)
+        // Set selected outlet if available
+        setSelectedOutlet(jobData.outlet._id || null);
+      } catch (error) {
+        console.error("Error fetching job details:", error);
+        setError("Failed to load job details");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+  
+    if (jobId) fetchJobDetails();
+  }, [jobId]); // Runs when jobId changes
+  
+
+  const handleCompanyOptionSelect = (value: string) => {
+    const selectedCompany = companies.find((option) => option.value === value);
+    if (selectedCompany) {
+      setSelectedCompanyOption(value);
+
+      setFormData((prevData) => ({
+        ...prevData,
+        company: { ...prevData.company, name: selectedCompany.label },
+        employerId: value, // Update employerId
+      }));
+    }
+    setIsCompanyDropdownOpen(false);
+  };
 
   const navigate = useNavigate();
 
@@ -263,54 +303,120 @@ export default function ModifyJob() {
     }
   };
 
+  const addShift = () => {
+    const newShift: Shift = {
+      id: formData.shifts.length + 1,
+      startTime: { hours: "00", minutes: "00", period: "AM" },
+      endTime: { hours: "00", minutes: "00", period: "AM" },
+      vacancy: 3,
+      standbyVacancy: 1,
+      duration: 4,
+      breakHours: 1,
+      breakType: "Paid",
+      rateType: "Flat rate",
+      payRate: 20,
+      totalWage: 80,
+    };
+    setFormData((prevData) => ({
+      ...prevData,
+      shifts: [...prevData.shifts, newShift],
+    }));
+  };
+
+  const deleteShift = (id: number) => {
+    setFormData((prevData) => ({
+      ...prevData,
+      shifts: prevData.shifts.filter((shift) => shift.id !== id),
+    }));
+  };
+
+  const updateShift = (id: number, field: keyof Shift, value: any) => {
+    setFormData((prevData) => ({
+      ...prevData,
+      shifts: prevData.shifts.map((shift) => {
+        if (shift.id === id) {
+          const updatedShift = { ...shift, [field]: value };
+          // Recalculate totalWage if payRate or duration is updated
+          if (field === "payRate" || field === "duration") {
+            updatedShift.totalWage =
+              updatedShift.payRate * updatedShift.duration;
+          }
+          return updatedShift;
+        }
+        return shift;
+      }),
+    }));
+  };
+
+  const updateTime = (
+    id: number,
+    timeType: "startTime" | "endTime",
+    field: keyof Shift["startTime"],
+    value: string
+  ) => {
+    setFormData((prevData) => ({
+      ...prevData,
+      shifts: prevData.shifts.map((shift) => {
+        if (shift.id === id) {
+          return {
+            ...shift,
+            [timeType]: { ...shift[timeType], [field]: value },
+          };
+        }
+        return shift;
+      }),
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
     try {
-      const response = await axiosInstance.put(`jobs/${jobId}`, formData);
-      console.log(response);
+      // Convert date from object to "YYYY-MM-DD"
+      const formattedDate = `${formData.date.year}-${String(
+        formData.date.month
+      ).padStart(2, "0")}-${String(formData.date.day).padStart(2, "0")}`;
+
+      // Map shifts to match API format
+      const formattedShifts = formData.shifts.map((shift) => ({
+        startTime: `${shift.startTime.hours}:${shift.startTime.minutes}`,
+        startMeridian: shift.startTime.period,
+        endTime: `${shift.endTime.hours}:${shift.endTime.minutes}`,
+        endMeridian: shift.endTime.period,
+        vacancy: shift.vacancy,
+        standbyVacancy: shift.standbyVacancy,
+        duration: shift.duration,
+        breakHours: shift.breakHours,
+        breakType: shift.breakType,
+        rateType: shift.rateType,
+        payRate: shift.payRate,
+        totalWage:
+          shift.rateType === "Hourly rate"
+            ? shift.payRate * shift.duration
+            : shift.payRate,
+      }));
+
+      // Construct request payload
+      const requestData = {
+        jobName: formData.jobName,
+        employerId: selectedCompanyOption,
+        outletId: selectedOutlet,
+        date: formattedDate,
+        location: formData.location,
+        industry: formData.industry || "Hotel",
+        jobScope: formData.requirements.jobScopeDescription.split(", "),
+        jobRequirements: formData.requirements.jobRequirements.split(", "),
+        shifts: formattedShifts,
+      };
+
+      console.log("Submitting Job Data:", requestData);
+      const response = await axiosInstance.put(`/admin/jobs/${jobId}`, requestData);
+
+      console.log("Job created successfully:", response.data);
       navigate("/jobs/job-management");
     } catch (error) {
       console.error("Error submitting form:", error);
     }
-  };
-
-  const { jobId } = useParams();
-
-  const fetchJobDetails = async () => {
-    axiosInstance
-      .get(`/jobs/${jobId}`)
-      .then((response) => {
-        setJobsData(response.data || {}); // Assign the jobs array or an empty array
-        const formattedData = {
-          ...response.data,
-          company: {
-            ...response.data.company,
-            agreementEndDate: new Date(response.data.company.agreementEndDate),
-          },
-          requirements: {
-            jobScopeDescription: response.data.jobScopeDescription,
-            jobRequirements: response.data.jobRequirements,
-          },
-        };
-        setSelectedCompanyOption(response.data.company.name);
-        setShifts(response.data.shifts)
-        setFormData(formattedData);
-      })
-      .catch((error) => {
-        console.error("Error fetching job details:", error);
-      });
-  };
-  console.log(jobsData);
-  console.log(jobId);
-  useEffect(() => {
-    fetchJobDetails();
-  }, [jobId]);
-  const handleBreakTypeChange = (id: string, newBreakType: string) => {
-    setShifts((prevShifts) =>
-      prevShifts.map((shift) =>
-        shift.id === id ? { ...shift, breakType: newBreakType } : shift
-      )
-    );
   };
 
   const handleDateChange = (field: "day" | "month" | "year", value: number) => {
@@ -328,9 +434,25 @@ export default function ModifyJob() {
       return {
         ...prevData,
         date: updatedDate,
-        dates: isDuplicate ? prevData.dates : [ updatedDate], // Add unique date to the array
+        dates: isDuplicate ? prevData.dates : [updatedDate], // Add unique date to the array
       };
     });
+  };
+
+  const handleJobLogoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (reader.result) {
+          setFormData((prevFormData) => ({
+            ...prevFormData,
+            jobLogo: reader.result as string, // Update jobLogo with the image data
+          }));
+        }
+      };
+      reader.readAsDataURL(file); // Convert file to Base64 URL
+    }
   };
 
   return (
@@ -359,36 +481,33 @@ export default function ModifyJob() {
             <div className="space-y-2">
               <label className="text-sm font-medium">Job name</label>
               <div className="flex items-center gap-2">
-                <div className="flex-1 flex items-center gap-2 px-3 py-2 border rounded-lg">
-                  <svg
-                    className="w-5 h-5 text-gray-500"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <circle
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="2"
+                <div className="flex-1 flex items-center gap-2 px-3 py-2 border rounded-lg ">
+                  <div className="border-r px-2 border-dashed cursor-pointer">
+                    <label htmlFor="jobLogoUpload">
+                      <img
+                        src={formData.jobLogo}
+                        alt="Job Logo"
+                        width={38}
+                        height={38}
+                        className="cursor-pointer rounded-full p-1"
+                      />
+                    </label>
+                    <input
+                      id="jobLogoUpload"
+                      type="file"
+                      accept="image/*"
+                      style={{ display: "none" }}
+                      onChange={handleJobLogoChange}
                     />
-                    <path
-                      d="M8 14C8.5 15.5 10 16.5 12 16.5C14 16.5 15.5 15.5 16 14"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                    />
-                    <circle cx="9" cy="9" r="1" fill="currentColor" />
-                    <circle cx="15" cy="9" r="1" fill="currentColor" />
-                  </svg>
+                  </div>
+
                   <input
                     type="text"
-                    defaultValue="Tray Collector"
                     className="flex-1 border-none p-0 focus:outline-none"
                     name="jobName"
-                    value={formData.jobName || jobsData.jobName}
+                    value={formData.jobName}
                     onChange={handleInputChange}
+                    required
                   />
                   <button className="p-2 hover:bg-gray-100 rounded-lg">
                     <Pencil className="w-4 h-4" />
@@ -399,85 +518,81 @@ export default function ModifyJob() {
             <div className="space-y-2">
               <div className="flex justify-between">
                 <label className="text-sm font-medium">Company</label>
+                <div className="text-sm text-gray-500 text-right">
+                  Agreement end on:{" "}
+                  <span className="text-orange-500">26 July, 25</span>
+                </div>
               </div>
 
               <div className="relative">
-                {/* <div className="flex items-center gap-2">
-                  <div className="flex-1 flex items-center gap-2 px-3 py-2 border rounded-lg">
-                    <img
-                      src="/placeholder.svg"
-                      alt="Company logo"
-                      width={24}
-                      height={24}
-                      className="rounded"
-                    />
-                    <input
-                      type="text"
-                      name="company.name"
-                      value={formData.company.name || jobsData.company?.name}
-                      onChange={handleInputChange}
-                      defaultValue="RIGHT SERVICE PTE. LTD."
-                      className="flex-1 border-none p-0 focus:outline-none"
-                    />
-                    <button className="p-2 hover:bg-gray-100 rounded-lg">
-                      <Pencil className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div> */}
-                <div className="flex-1 flex items-center gap-2 px-3 py-2 border rounded-lg cursor-pointer z-10">
+                {isLoading ? (
+                  <p>Loading...</p>
+                ) : error ? (
+                  <p className="text-red-500">{error}</p>
+                ) : (
                   <div
-                    className="flex-1 flex items-center gap-2 "
+                    className="flex items-center gap-2 px-3 py-2 border rounded-lg cursor-pointer"
                     onClick={() =>
                       setIsCompanyDropdownOpen(!isCompanyDropdownOpen)
                     }
                   >
+                    {/* Company Logo */}
                     <img
                       src={
                         companies.find(
                           (option) => option.value === selectedCompanyOption
-                        )?.image
+                        )?.image || "/assets/company.png"
                       }
                       alt="Company logo"
                       width={24}
                       height={24}
                       className="rounded"
                     />
-                    <p>
-                      {
-                        companies.find(
-                          (option) => option.value === selectedCompanyOption
-                        )?.label
-                      }
+
+                    {/* Selected Company Name */}
+                    <p className="flex-1">
+                      {companies.find(
+                        (option) => option.value === selectedCompanyOption
+                      )?.label || "Select Employer"}
                     </p>
+
+                    {/* Edit Button Inside the Box */}
+                    <button
+                      className="p-1 rounded-lg hover:bg-gray-100"
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent dropdown from opening when clicking edit
+                        console.log("Edit button clicked");
+                      }}
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
                   </div>
+                )}
 
-                  {isCompanyDropdownOpen && (
-                    <div className="absolute mt-2 bg-white border rounded-lg shadow-lg w-full">
-                      {companies.map((option) => (
-                        <div
-                          key={option.value}
-                          className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-gray-100"
-                          onClick={() =>
-                            handleCompanyOptionSelect(option.value)
-                          }
-                        >
-                          <img
-                            src={option.image}
-                            alt={option.label}
-                            width={24}
-                            height={24}
-                            className="rounded"
-                          />
-                          <p>{option.label}</p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  <button className="p-2 hover:bg-gray-100 rounded-lg">
-                    <Pencil className="w-4 h-4" />
-                  </button>
-                </div>
+                {/* Dropdown List */}
+                {isCompanyDropdownOpen && (
+                  <div className="absolute mt-2 bg-white border rounded-lg shadow-lg w-full z-10">
+                    {companies.map((option) => (
+                      <div
+                        key={option.value}
+                        className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-gray-100"
+                        onClick={() => {
+                          handleCompanyOptionSelect(option.value);
+                          setIsCompanyDropdownOpen(false);
+                        }}
+                      >
+                        <img
+                          src={option.image}
+                          alt={option.label}
+                          width={24}
+                          height={24}
+                          className="rounded"
+                        />
+                        <p>{option.label}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -485,26 +600,58 @@ export default function ModifyJob() {
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <label className="text-sm font-medium">Outlet</label>
-              <div className="flex items-center gap-2">
-                <div className="flex-1 flex items-center gap-2 px-3 py-2 border rounded-lg">
-                  {/* <img
-                    src="/placeholder.svg"
-                    alt="Domino's logo"
+              <div className="relative">
+                <div
+                  className="flex items-center gap-2 px-3 py-2 border rounded-lg cursor-pointer"
+                  onClick={() => setIsOutletDropdownOpen(!isOutletDropdownOpen)}
+                >
+                  <img
+                    src={
+                      outlets.find((option) => option.value === selectedOutlet)?.image
+                        ? `${outlets.find((option) => option.value === selectedOutlet)?.image}`
+                        : "http://localhost:3000/static/outletImage.png"
+                    }
+                    alt="Outlet logo"
                     width={24}
                     height={24}
-                  /> */}
-                  <input
-                    type="text"
-                    defaultValue="Domino's"
-                    className="flex-1 border-none p-0 focus:outline-none"
-                    name="outletName"
-                    value={formData.outletName}
-                    onChange={handleInputChange}
+                    className="rounded"
                   />
-                  <button className="p-2 hover:bg-gray-100 rounded-lg">
+                  <p className="flex-1">
+                    {outlets.find((option) => option.value === selectedOutlet)
+                      ?.label || "Select Outlet"}
+                  </p>
+                  <button
+                    className="p-1 rounded-lg hover:bg-gray-100"
+                    onClick={(e) => e.stopPropagation()} // Prevent dropdown toggle
+                  >
                     <Pencil className="w-4 h-4" />
                   </button>
                 </div>
+
+                {/* Dropdown List */}
+                {isOutletDropdownOpen && (
+                  <div className="absolute mt-2 bg-white border rounded-lg shadow-lg w-full z-10">
+                    {outlets.map((option) => (
+                      <div
+                        key={option.value}
+                        className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-gray-100"
+                        onClick={() => {
+                          setSelectedOutlet(option.value);
+                          setIsOutletDropdownOpen(false);
+                        }}
+                      >
+                        <img
+                          src={option.image}
+                          alt={option.label}
+                          width={24}
+                          height={24}
+                          className="rounded"
+                        />
+                        <p>{option.label}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
             <div className="space-y-2">
@@ -515,27 +662,28 @@ export default function ModifyJob() {
                 Date
               </label>
               <div className="flex items-center gap-2">
+                {/* Day Selector */}
                 <select
                   id="day"
                   name="day"
-                  value={
-                    formData.dates[0].day
-                  }
+                  value={formData.date.day} // day
                   onChange={(e) =>
                     handleDateChange("day", parseInt(e.target.value))
                   }
                   className="w-20 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   {Array.from({ length: 31 }, (_, i) => (
-                    <option key={i + 1} value={i + 1}>
-                      {i + 1}
+                    <option key={i + 1} value={i}>
+                      {i}
                     </option>
                   ))}
                 </select>
+
+                {/* Month Selector */}
                 <select
                   id="month"
                   name="month"
-                  value={formData.dates[0].month} // month
+                  value={formData.date.month} // month
                   onChange={(e) =>
                     handleDateChange("month", parseInt(e.target.value))
                   }
@@ -555,15 +703,17 @@ export default function ModifyJob() {
                     "November",
                     "December",
                   ].map((month, index) => (
-                    <option key={month.toLowerCase()} value={index}>
+                    <option key={index} value={index + 1}>
                       {month}
                     </option>
                   ))}
                 </select>
+
+                {/* Year Selector */}
                 <select
                   id="year"
                   name="year"
-                  value={formData.dates[0].year} // year
+                  value={formData.date.year} // year
                   onChange={(e) =>
                     handleDateChange("year", parseInt(e.target.value))
                   }
@@ -575,12 +725,6 @@ export default function ModifyJob() {
                     </option>
                   ))}
                 </select>
-                <button
-                  type="button"
-                  className="p-2 hover:bg-gray-100 rounded-lg"
-                >
-                  <CalendarIcon className="w-4 h-4" />
-                </button>
               </div>
             </div>
           </div>
@@ -592,10 +736,10 @@ export default function ModifyJob() {
                 <input
                   type="text"
                   name="location"
-                  value={formData.location || jobsData.location}
+                  value={formData.location}
                   onChange={handleInputChange}
-                  defaultValue="110/54, Anchorvale Link, Backer street"
                   className="flex-1 border-none p-0 focus:outline-none"
+                  required
                 />
                 <button className="p-2 hover:bg-gray-100 rounded-lg">
                   <Pencil className="w-4 h-4" />
@@ -606,16 +750,16 @@ export default function ModifyJob() {
               <label className="text-sm font-medium">Industry</label>
               <div className="flex-1 flex items-center gap-2 px-3 py-2 border rounded-lg">
                 <select
-                  defaultValue="hotel"
+                  defaultValue="Hotel"
                   name="industry"
-                  value={formData.industry || jobsData.industry}
+                  value={formData.industry}
                   onChange={handleInputChange}
                   className="flex-1 border-none p-0 focus:outline-none"
                 >
-                  <option value="hotel">Hotel</option>
-                  <option value="restaurant">Restaurant</option>
-                  <option value="retail">Retail</option>
-                  <option value="healthcare">Healthcare</option>
+                  <option value="Hotel">Hotel</option>
+                  <option value="Restaurant">Restaurant</option>
+                  <option value="Retail">Retail</option>
+                  <option value="Healthcare">Healthcare</option>
                 </select>
                 <button className="p-2 hover:bg-gray-100 rounded-lg">
                   <Pencil className="w-4 h-4" />
@@ -635,248 +779,342 @@ export default function ModifyJob() {
               </div>
             </div>
 
-            <div className="w-full overflow-x-auto">
-              <div className="min-w-[1200px]">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="bg-gray-50 text-sm font-medium">
-                      <th className="p-2 truncate px-8 text-center">
-                        <Trash2
-                          className="h-4 w-4 text-gray-400 cursor-pointer hover:text-red-500"
-                          // onClick={() => deleteShift(shift.id)}
-                        />
-                      </th>
-                      <th className="p-2 truncate px-8 text-center">
-                        Start Time
-                      </th>
-                      <th className="p-2 truncate px-8 text-center">
-                        End Time
-                      </th>
-                      <th className="p-2 truncate px-8 text-center">
-                        Vacancy Filled
-                      </th>
-                      <th className="p-2 truncate px-8 text-center">
-                        Standby Filled
-                      </th>
-                      <th className="p-2 truncate px-8 text-center">
-                        Total Duration
-                      </th>
-                      <th className="p-2 truncate px-8 text-center">
-                        Break Included
-                      </th>
-                      <th className="p-2 truncate px-8 text-center">
-                        Paid/Unpaid break
-                      </th>
-                      <th className="p-2 truncate px-8 text-center">
-                        Rate Type
-                      </th>
-                      <th className="p-2 truncate px-8 text-center">Rate</th>
-                      <th className="p-2 truncate px-8 text-center">
-                        Total Wage
-                      </th>
-                      <th className="p-2 truncate px-8 text-center">
-                        Job Status
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {shifts.map((shift) => (
-                      <tr key={shift.id} className="border-b border-gray-200">
-                        <td className="p-2 truncate px-8 text-center">
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="checkbox"
-                              className="w-4 h-4 rounded border-gray-300"
-                            />
-                          </div>
-                        </td>
-                        <td className="p-2 truncate px-8 text-center">
-                          <div className="flex items-center gap-2 bg-[#048be1] text-white rounded-full px-3 py-2 w-fit">
-                            {shift.startTime.hours}:{shift.startTime.minutes}:
-                            {shift.startTime.period}
-                            <FiEdit3 className="h-5 w-5 p-1 rounded-full bg-white text-black cursor-pointer" />
-                          </div>
-                        </td>
-                        <td className="p-2 truncate px-8 text-center">
-                          <div className="flex items-center gap-1 bg-[#048be1] text-white rounded-full px-3 py-2 w-fit">
-                            {shift.endTime.hours}:{shift.endTime.minutes}:
-                            {shift.endTime.period}
-                            <FiEdit3 className="h-5 w-5 p-1 rounded-full bg-white text-black cursor-pointer" />
-                          </div>
-                        </td>
-                        <td className="p-2 truncate px-8 text-center">
-                          <div className="flex items-center gap-2">
-                            <button
-                              type="button"
-                              className="px-2 py-2 bg-[#F1F1F1] rounded-full hover:bg-gray-300"
-                              onClick={() =>
-                                handleDecrease(shift._id, "vacancy")
-                              }
-                            >
-                              <Minus className="w-5 h-5" />
-                            </button>
-                            <p>
-                              {shift.vacancy > 0 ? shift.vacancy : "_"}/
-                              {maxVacancy}
-                            </p>
+            {formData.shifts.map((shift, index) => (
+              <div key={shift.id} className="mb-6 bg-white rounded-2xl border">
+                <div className="flex justify-between items-center p-6 pb-4">
+                  <h3 className="text-lg">{index + 1}st Shift</h3>
+                  <button
+                    onClick={() => deleteShift(shift.id)}
+                    className="text-red-500 hover:text-red-600"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
+                </div>
 
-                            <button
-                              type="button"
-                              className="px-2 py-2 bg-[#F1F1F1] rounded-full hover:bg-gray-300"
-                              onClick={() =>
-                                handleIncrease(shift._id, "vacancy", maxVacancy)
-                              }
-                            >
-                              <Plus className="w-5 h-5" />
-                            </button>
-                          </div>
-                        </td>
-                        <td className="p-2 truncate px-8 text-center">
-                          <div className="flex items-center gap-2">
-                            <button
-                            type="button"
-                              className="px-2 py-2 bg-[#F1F1F1] rounded-full hover:bg-gray-300"
-                              onClick={() =>
-                                handleDecrease(shift._id, "standbyVacancy")
-                              }
-                            >
-                              <Minus className="w-5 h-5" />
-                            </button>
-                            <p>
-                              {shift.standbyVacancy > 0
-                                ? shift.standbyVacancy
-                                : "_"}
-                              /{maxStandby}
-                            </p>
+                <div className="p-6 pt-0 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Start time</label>
+                    <div className="flex items-center gap-2 p-3 border rounded-xl bg-white h-12">
+                      <input
+                        type="text"
+                        value={shift.startTime.hours}
+                        onChange={(e) =>
+                          updateTime(
+                            shift.id,
+                            "startTime",
+                            "hours",
+                            e.target.value
+                          )
+                        }
+                        className="w-12 text-center focus:outline-none"
+                        maxLength={2}
+                      />
+                      <span>:</span>
+                      <input
+                        type="text"
+                        value={shift.startTime.minutes}
+                        onChange={(e) =>
+                          updateTime(
+                            shift.id,
+                            "startTime",
+                            "minutes",
+                            e.target.value
+                          )
+                        }
+                        className="w-12 text-center focus:outline-none"
+                        maxLength={2}
+                      />
+                      <select
+                        className="ml-6 bg-blue-50 rounded-lg px-2 py-1 focus:outline-none text-sm"
+                        value={shift.startTime.period}
+                        onChange={(e) =>
+                          updateTime(
+                            shift.id,
+                            "startTime",
+                            "period",
+                            e.target.value
+                          )
+                        }
+                      >
+                        <option>AM</option>
+                        <option>PM</option>
+                      </select>
+                    </div>
+                  </div>
 
-                            <button
-                            type="button"
-                              className="px-2 py-2 bg-[#F1F1F1] rounded-full hover:bg-gray-300"
-                              onClick={() =>
-                                handleIncrease(
-                                  shift._id,
-                                  "standbyVacancy",
-                                  maxStandby
-                                )
-                              }
-                            >
-                              <Plus className="w-5 h-5" />
-                            </button>
-                          </div>
-                        </td>
-                        <td className="p-2 truncate px-8 text-center ">
-                          {shift.duration}
-                        </td>
-                        <td className="p-2 truncate px-8 text-center">
-                          <div className="flex items-center gap-2">
-                          <button
-                          type="button"
-                              className="px-2 py-2 bg-[#F1F1F1] rounded-full hover:bg-gray-300"
-                              onClick={() =>
-                                handleDecrease(shift._id, "breakHours")
-                              }
-                            >
-                              <Minus className="w-5 h-5" />
-                            </button>
-                            <p>
-                              {shift.breakHours > 0
-                                ? shift.breakHours
-                                : "0"}
-                              
-                            </p>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">End time</label>
+                    <div className="flex items-center gap-2 p-3 border rounded-xl bg-white h-12">
+                      <input
+                        type="text"
+                        value={shift.endTime.hours}
+                        onChange={(e) =>
+                          updateTime(
+                            shift.id,
+                            "endTime",
+                            "hours",
+                            e.target.value
+                          )
+                        }
+                        className="w-12 text-center focus:outline-none"
+                        maxLength={2}
+                      />
+                      <span>:</span>
+                      <input
+                        type="text"
+                        value={shift.endTime.minutes}
+                        onChange={(e) =>
+                          updateTime(
+                            shift.id,
+                            "endTime",
+                            "minutes",
+                            e.target.value
+                          )
+                        }
+                        className="w-12 text-center focus:outline-none"
+                        maxLength={2}
+                      />
+                      <select
+                        className="ml-6 bg-blue-50 rounded px-2 py-1 focus:outline-none text-sm"
+                        value={shift.endTime.period}
+                        onChange={(e) =>
+                          updateTime(
+                            shift.id,
+                            "endTime",
+                            "period",
+                            e.target.value
+                          )
+                        }
+                      >
+                        <option>AM</option>
+                        <option>PM</option>
+                      </select>
+                    </div>
+                  </div>
 
-                            <button
-                            type="button"
-                              className="px-2 py-2 bg-[#F1F1F1] rounded-full hover:bg-gray-300"
-                              onClick={() =>
-                                handleIncrease(
-                                  shift._id,
-                                  "breakHours",
-                                  shift.duration
-                                )
-                              }
-                            >
-                              <Plus className="w-5 h-5" />
-                            </button>
-                          </div>
-                        </td>
-                        <td className="p-2 truncate px-8 text-left">
-                          <div className="relative inline-block">
-                            <select
-                              className={`appearance-none px-8 py-1.5 rounded-full border text-left outline-none ${
-                                shift.breakType === "Paid"
-                                  ? "bg-green-50 text-green-600"
-                                  : "bg-red-50 text-red-600"
-                              }`}
-                              defaultValue={shift.breakType}
-                              onChange={(e) =>
-                                handleBreakTypeChange(shift.id, e.target.value)
-                              }
-                            >
-                              <option
-                                value="Paid"
-                                className="bg-green-50 text-green-600"
-                              >
-                                Paid
-                              </option>
-                              <option
-                                value="Unpaid"
-                                className="bg-red-50 text-red-600"
-                              >
-                                Unpaid
-                              </option>
-                            </select>
-                            <span className="absolute inset-y-0 right-2 flex items-center pointer-events-none">
-                              <FaCaretDown className="w-5 h-5" />
-                            </span>
-                          </div>
-                        </td>
-                        <td className="p-2 truncate px-8 text-center">
-                          <select
-                            className="px-3 py-1.5 rounded-lg border border-gray-200"
-                            defaultValue={shift.rateType}
-                          >
-                            <option value="Flat Rate">Flat Rate</option>
-                            <option value="Hourly">Hourly</option>
-                          </select>
-                        </td>
-                        <td className="p-2 truncate px-8 text-center">
-                          ${shift.payRate}
-                        </td>
-                        <td className="p-2 truncate px-8 text-center">
-                          <div className="flex items-center gap-1">
-                            <span>$</span>
-                            <div className="bg-blue-50 px-3 py-1 rounded-lg">
-                              {shift.totalWage}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="p-2 truncate px-8 text-center r">
-                          <span
-                            className={`px-3 py-1.5 rounded-full  ${
-                              shift.status === "Active"
-                                ? "bg-green-50 text-green-600"
-                                : "bg-orange-50 text-orange-700"
-                            }`}
-                          >
-                            {" "}
-                            {jobsData.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Vacancy</label>
+                    <div className="flex justify-between items-center gap-2 p-3 border rounded-xl bg-white h-12">
+                      <button
+                       type="button"
+                        className=" bg-blue-50 rounded-lg px-2 py-1 focus:outline-none text-sm"
+                        onClick={() =>
+                          updateShift(
+                            shift.id,
+                            "vacancy",
+                            Math.max(0, shift.vacancy - 1)
+                          )
+                        }
+                      >
+                        −
+                      </button>
+                      <input
+                        type="text"
+                        value={shift.vacancy}
+                        onChange={(e) =>
+                          updateShift(
+                            shift.id,
+                            "vacancy",
+                            Number(e.target.value)
+                          )
+                        }
+                        className="w-12 text-center focus:outline-none"
+                      />
+                      <button
+                       type="button"
+                        className=" bg-blue-50 rounded-lg px-2 py-1 focus:outline-none text-sm"
+                        onClick={() =>
+                          updateShift(shift.id, "vacancy", shift.vacancy + 1)
+                        }
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
 
-                <button
-                  onClick={addShift}
-                  type="button"
-                  className="px-6 py-2 my-6 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none"
-                >
-                  Add Shift
-                </button>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">
+                      Standby vacancy
+                    </label>
+                    <div className="flex justify-between items-center gap-2 p-3 border rounded-xl bg-white h-12">
+                      <button
+                       type="button"
+                        className=" bg-blue-50 rounded-lg px-2 py-1 focus:outline-none text-sm"
+                        onClick={() =>
+                          updateShift(
+                            shift.id,
+                            "standbyVacancy",
+                            Math.max(0, shift.standbyVacancy - 1)
+                          )
+                        }
+                      >
+                        −
+                      </button>
+                      <input
+                        type="text"
+                        value={shift.standbyVacancy}
+                        onChange={(e) =>
+                          updateShift(
+                            shift.id,
+                            "standbyVacancy",
+                            Number(e.target.value)
+                          )
+                        }
+                        className="w-12 text-center focus:outline-none"
+                      />
+                      <button
+                       type="button"
+                        className=" bg-blue-50 rounded-lg px-2 py-1 focus:outline-none text-sm"
+                        onClick={() =>
+                          updateShift(
+                            shift.id,
+                            "standbyVacancy",
+                            shift.standbyVacancy + 1
+                          )
+                        }
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Duration</label>
+                    <div className="flex items-center gap-2 p-3 border rounded-xl bg-white h-12">
+                      <input
+                        type="text"
+                        value={shift.duration}
+                        onChange={(e) =>
+                          updateShift(
+                            shift.id,
+                            "duration",
+                            Number(e.target.value)
+                          )
+                        }
+                        className="w-full text-center focus:outline-none"
+                      />
+                      <span className="text-gray-500">Hrs</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Break Hours</label>
+                    <div className="flex justify-between items-center gap-2 p-3 border rounded-xl bg-white h-12">
+                      <button
+                        className=" bg-blue-50 rounded-lg px-2 py-1 focus:outline-none text-sm"
+                        onClick={() =>
+                          updateShift(
+                            shift.id,
+                            "breakHours",
+                            Math.max(0, shift.breakHours - 1)
+                          )
+                        }
+                      >
+                        −
+                      </button>
+                      <input
+                        type="text"
+                        value={shift.breakHours}
+                        onChange={(e) =>
+                          updateShift(
+                            shift.id,
+                            "breakHours",
+                            Number(e.target.value)
+                          )
+                        }
+                        className="w-12 text-center focus:outline-none"
+                      />
+                      <button
+                        className=" bg-blue-50 rounded-lg px-2 py-1 focus:outline-none text-sm"
+                        onClick={() =>
+                          updateShift(
+                            shift.id,
+                            "breakHours",
+                            shift.breakHours + 1
+                          )
+                        }
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Break Type</label>
+                    <select
+                      className="w-full h-12 px-3 border rounded-xl bg-white focus:outline-none appearance-none"
+                      value={shift.breakType}
+                      onChange={(e) =>
+                        updateShift(shift.id, "breakType", e.target.value)
+                      }
+                    >
+                      <option>Paid</option>
+                      <option>Unpaid</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Rate type</label>
+                    <select
+                      className="w-full h-12 px-3 border rounded-xl bg-white focus:outline-none appearance-none"
+                      value={shift.rateType}
+                      onChange={(e) =>
+                        updateShift(shift.id, "rateType", e.target.value)
+                      }
+                    >
+                      <option>Flat rate</option>
+                      <option>Hourly rate</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Pay rate/Hr</label>
+                    <div className="flex items-center gap-2 p-3 border rounded-xl bg-white h-12">
+                      <span className="text-gray-500">$</span>
+                      <input
+                        type="text"
+                        value={shift.payRate}
+                        onChange={(e) =>
+                          updateShift(
+                            shift.id,
+                            "payRate",
+                            Number(e.target.value)
+                          )
+                        }
+                        className="w-full focus:outline-none"
+                      />
+                      <span className="text-gray-500">/Hr</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">
+                      Total Wage{" "}
+                      <span className="text-xs text-gray-400">
+                        (Rate x Duration = Total wage)
+                      </span>
+                    </label>
+                    <div className="flex items-center gap-2 p-3 border rounded-xl bg-white h-12">
+                      <span className="text-gray-500">$</span>
+                      <input
+                        type="text"
+                        value={shift.totalWage || 0}
+                        className="w-full focus:outline-none"
+                        readOnly
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
+            ))}
+
+            <button
+              onClick={addShift}
+              type="button"
+              className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none"
+            >
+              Add Shift
+            </button>
           </div>
         </div>
 
@@ -998,17 +1236,12 @@ export default function ModifyJob() {
                 </div>
                 <textarea
                   name="requirements.jobScopeDescription"
-                  value={
-                    formData.requirements.jobScopeDescription ||
-                    jobsData.jobScopeDescription
-                  }
-                  defaultValue={
-                    formData.requirements.jobScopeDescription ||
-                    jobsData.jobScopeDescription
-                  }
+                  // defaultValue={formData.requirements.jobScopeDescription}
+                  value={formData.requirements.jobScopeDescription}
                   onChange={handleInputChange}
                   className="w-full min-h-[150px] p-2 border-0 focus:ring-0"
                   placeholder="Type your job description here"
+                  required
                 ></textarea>
               </div>
             </div>
@@ -1118,17 +1351,12 @@ export default function ModifyJob() {
                 </div>
                 <textarea
                   name="requirements.jobRequirements"
-                  value={
-                    formData.requirements.jobRequirements ||
-                    jobsData.jobRequirements
-                  }
-                  defaultValue={
-                    formData.requirements.jobRequirements ||
-                    jobsData.jobRequirements
-                  }
+                  //  defaultValue={formData.requirements.jobRequirements}
+                  value={formData.requirements.jobRequirements}
                   onChange={handleInputChange}
                   className="w-full min-h-[150px] p-2 border-0 focus:ring-0"
                   placeholder="Type your job requirements here"
+                  required
                 ></textarea>
               </div>
             </div>

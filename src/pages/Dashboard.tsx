@@ -15,6 +15,7 @@ type totalJobPostedTyep = {
 
 const Dashboard = () => {
   const [selectedCard, setSelectedCard] = useState(null); // State to track the selected card
+  const [dashboardData ,setDashboardData] = useState(0);
   const [postedJobs, setPostedJobs] = useState(0)
    const [queryParams, setQueryParams] = useState({
       search: "",
@@ -33,98 +34,93 @@ const Dashboard = () => {
     setSelectedCard(index); // Set the clicked card as selected
   };
 
-  const fetchJobDetails = async (params) => {
-      const queryString = new URLSearchParams(params).toString();
-      axiosInstance
-        .get(`/jobs?${queryString}`)
-        .then((response) => {
-          
-          setPostedJobs(response.data.jobs.length || 0); // Assign the jobs array or an empty array
-          // console.log(jobsData)
-        })
-        .catch((error) => {
-          console.error("Error fetching job details:", error);
-        });
-    };
+  const fetchJobDetails = async () => {
+    try {
+      const response = await axiosInstance.get(`/dashboard/overview`);
+      console.log("API Response:", response.data);
+  
+      setDashboardData({
+        totalJobs: response.data.totalJobs || 0,
+        activatedHeroes: response.data.activatedHeroes || 0,
+        vacancies: response.data.vacancies || 0,
+        vacanciesFilled: response.data.vacanciesFilled || 0,
+        pendingVerifications: response.data.pendingVerifications || 0,
+        pendingPayments: response.data.pendingPayments || 0,
+        totalAmountPaid: response.data.totalAmountPaid || 0,
+        noShows: response.data.noShows || 0,
+        verifiedHeroes: response.data.verifiedHeroes || 0
+      });
+    } catch (error) {
+      console.error("Error fetching job details:", error);
+    }
+  };
+  
   
     useEffect(() => {
-      fetchJobDetails(queryParams);
-    }, [queryParams]);
+      fetchJobDetails();
+    }, []);
 
-  const totalJobPostedData = [
-    { month: "Jan", jobsPosted: 0 },
-    { month: "Feb", jobsPosted: 0 },
-    { month: "Mar", jobsPosted: 100000 },
-    { month: "Apr", jobsPosted: 0 },
-    { month: "May", jobsPosted: 0 },
-    { month: "Jun", jobsPosted: 0 },
-    { month: "Jul", jobsPosted: 0 },
-    { month: "Aug", jobsPosted: 0 },
-    { month: "Sep", jobsPosted: 0 },
-    { month: "Oct", jobsPosted: 0 },
-    { month: "Nov", jobsPosted: 0 },
-    { month: "Dec", jobsPosted: 0 },
-  ]
   
 
   const cards = [
     {
       title: "Total Job Posted",
-      value: postedJobs,
+      value: dashboardData.totalJobs,
       chartData: [0, 0, 0, 0, 0, 0, 0, 0],
       chartColor: ["#797979", "#FFFFFF"],
       icon: "/assets/icons/group1.svg",
     },
     {
       title: "Activated Hustle Heroes",
-      value: "0",
+      value: dashboardData.activatedHeroes,
       chartData: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       chartColor: ["#11FF00", "#FFFFFF"],
       icon: "/assets/icons/group2.svg",
     },
     {
       title: "Vacancy",
-      value: "0",
+      value: dashboardData.vacancies,
       chartData: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       chartColor: ["#4D5578", "#FFFFFF"],
       icon: "/assets/icons/group3.svg",
     },
     {
       title: "Pending Verifications",
-      value: "0",
+      value: dashboardData.pendingVerifications,
       chartData: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       chartColor: ["#0FA5C2", "#FFFFFF"],
       icon: "/assets/icons/group4.svg",
     },
     {
       title: "Pending Payment Transfers",
-      value: "0",
+      value: dashboardData.pendingPayments,
       chartData: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       chartColor: ["#FFDD1C", "#FFFFFF"],
       icon: "/assets/icons/group5.svg",
     },
     {
       title: "Total Amount Paid",
-      value: "0",
+      value: dashboardData.totalAmountPaid,
       chartData: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       chartColor: ["#178628", "#FFFFFF"],
       icon: "/assets/icons/group6.svg",
     },
     {
       title: "No Show",
-      value: "0",
+      value: dashboardData.noShows,
       chartData: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       chartColor: ["#797979", "#FFFFFF"],
       icon: "/assets/icons/group7.svg",
     },
     {
       title: "Verified Hustle Heroes",
-      value: "0",
+      value: dashboardData.verifiedHeroes,
       chartData: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       chartColor: ["#007BE5", "#FFFFFF"],
       icon: "/assets/icons/group2.svg",
     },
   ];
+  
 
   const CustomInput = React.forwardRef(({ value, onClick, label }, ref) => (
     <div

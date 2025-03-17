@@ -12,6 +12,7 @@ export interface Employee {
     avatarUrl: string
     gender: string
     mobile: string
+    nric: string
     icNumber: string
     dob: string
     registrationDate: string
@@ -19,110 +20,7 @@ export interface Employee {
     workingHours: string
     avgAttendRate: string
     workPassStatus: "Verified" | "Approved" | "Pending" | "Rejected"
-  }
-
-
-  const employees: Employee[] = [
-    {
-      id: "23244",
-      fullName: "Tim Kimber",
-      avatarUrl: "/assets/teamm1.svg",
-      gender: "Male",
-      mobile: "+658847349",
-      icNumber: "XXXXXX4575",
-      dob: "05/10/1988",
-      registrationDate: "21/09/2006",
-      turnUpRate: "0.00",
-      workingHours: "0 Hrs",
-      avgAttendRate: "0%",
-      workPassStatus: "Verified",
-    },
-    {
-      id: "23244",
-      fullName: "Tim Kimber",
-      avatarUrl: "/assets/teamm2.svg",
-      gender: "Male",
-      mobile: "+658847349",
-      icNumber: "XXXXXX4575",
-      dob: "05/10/1988",
-      registrationDate: "21/09/2006",
-      turnUpRate: "0.00",
-      workingHours: "0 Hrs",
-      avgAttendRate: "0%",
-      workPassStatus: "Verified",
-    },
-    {
-      id: "23244",
-      fullName: "Tim Kimber",
-      avatarUrl: "/assets/teamm3.svg",
-      gender: "Male",
-      mobile: "+658847349",
-      icNumber: "XXXXXX4575",
-      dob: "05/10/1988",
-      registrationDate: "21/09/2006",
-      turnUpRate: "0.00",
-      workingHours: "0 Hrs",
-      avgAttendRate: "0%",
-      workPassStatus: "Verified",
-    },
-    {
-      id: "23244",
-      fullName: "Tim Kimber",
-      avatarUrl: "/assets/teamm4.svg",
-      gender: "Male",
-      mobile: "+658847349",
-      icNumber: "XXXXXX4575",
-      dob: "05/10/1988",
-      registrationDate: "21/09/2006",
-      turnUpRate: "0.00",
-      workingHours: "0 Hrs",
-      avgAttendRate: "0%",
-      workPassStatus: "Verified",
-    },
-    {
-      id: "23244",
-      fullName: "Tim Kimber",
-      avatarUrl: "/assets/teamm1.svg",
-      gender: "Male",
-      mobile: "+658847349",
-      icNumber: "XXXXXX4575",
-      dob: "05/10/1988",
-      registrationDate: "21/09/2006",
-      turnUpRate: "0.00",
-      workingHours: "0 Hrs",
-      avgAttendRate: "0%",
-      workPassStatus: "Approved",
-    },
-    {
-      id: "23244",
-      fullName: "Tim Kimber",
-      avatarUrl: "/assets/teamm2.svg",
-      gender: "Male",
-      mobile: "+658847349",
-      icNumber: "XXXXXX4575",
-      dob: "05/10/1988",
-      registrationDate: "21/09/2006",
-      turnUpRate: "0.00",
-      workingHours: "0 Hrs",
-      avgAttendRate: "0%",
-      workPassStatus: "Pending",
-    },
-    {
-      id: "23244",
-      fullName: "Tim Kimber",
-      avatarUrl: "/assets/teamm3.svg",
-      gender: "Male",
-      mobile: "+658847349",
-      icNumber: "XXXXXX4575",
-      dob: "05/10/1988",
-      registrationDate: "21/09/2006",
-      turnUpRate: "0.00",
-      workingHours: "0 Hrs",
-      avgAttendRate: "0%",
-      workPassStatus: "Rejected",
-    },
-  ]
-  
+  } 
   
 
 export default function HustleHeroesList() {
@@ -133,9 +31,10 @@ const scrollContainerRef = React.useRef<HTMLDivElement>(null);
 
 useEffect(() => {
   // Fetch employees from API
-  axiosInstance.get('/hustleheroes')
+  axiosInstance.get('/admin/candidates')
       .then(response => {
-          setEmployees(response.data);
+        console.log("response", response.data.candidates)
+          setEmployees(response.data.candidates);
       })
       .catch(error => {
           console.error("Error fetching employees:", error);
@@ -165,10 +64,10 @@ useEffect(() => {
 
   const handleActionClick = (action: string, id: number) => {
     if(action==="View"){
-      navigate(`/jobs/:jobId/candidates/:${id}`)
+      navigate(`/jobs/:jobId/candidates/${id}`)
     }
     if(action==="Edit"){
-      navigate('/edit-candidate-profile')
+      navigate(`/edit-candidate-profile/${id}`)
     }
     setIsPopupOpen(null);
   };
@@ -195,9 +94,9 @@ useEffect(() => {
           <h1 className="text-[36px] font-[500] text-[#1F2937]">Hustle Heroes</h1>
 
           <div className="flex items-center gap-4 ">
-            <button className="p-[14px] rounded-[26px] shadow-lg bg-[#FFFFFF] hover:bg-gray-50 ">
+            {/* <button className="p-[14px] rounded-[26px] shadow-lg bg-[#FFFFFF] hover:bg-gray-50 ">
               <Plus className="w-[24px] h-[24px]" />
-            </button>
+            </button> */}
             <button className="p-[14px] rounded-[26px] shadow-lg bg-dark hover:bg-slate-950 ">
               <Filter
                 className="w-[20px] h-[20px]"
@@ -257,7 +156,7 @@ useEffect(() => {
               </td>
               <td className="p-4 truncate text-center border">{employee.gender}</td>
               <td className="p-4 truncate text-center border">{employee.mobile}</td>
-              <td className="p-4 truncate text-center border">{employee.icNumber}</td>
+              <td className="p-4 truncate text-center border">{employee.nric}</td>
               <td className="p-4 truncate text-center border">{employee.dob}</td>
               <td className="p-4 truncate text-center border">{employee.registrationDate}</td>
               <td className="p-4 truncate text-center border">{employee.turnUpRate}</td>
@@ -284,7 +183,7 @@ useEffect(() => {
                       <div className="absolute top-[30%] right-12 mt-1 w-32 bg-white shadow-md border border-gray-300 rounded-md z-10">
                         <button
                           className="flex items-center gap-2 p-2 w-full text-left text-gray-700 hover:bg-gray-100"
-                          onClick={() => handleActionClick("View", index)}
+                          onClick={() => handleActionClick("View", employee.id)}
                         >
                           <Eye size={16} />
                           View
@@ -292,7 +191,7 @@ useEffect(() => {
                         <button
                           className="flex items-center gap-2 p-2 w-full text-left text-gray-700 hover:bg-gray-100"
                           onClick={() =>
-                            handleActionClick("Edit", index)
+                            handleActionClick("Edit", employee.id)
                           }
                         >
                           <Edit size={16} />

@@ -22,7 +22,7 @@ import { LiaFileSignatureSolid } from "react-icons/lia";
 import { PiFolderSimpleUserLight } from "react-icons/pi";
 import { RiTriangleFill } from "react-icons/ri";
 import { axiosInstance } from "../../lib/authInstances";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { GoDuplicate } from "react-icons/go";
 import { IoMdInformationCircleOutline } from "react-icons/io";
 
@@ -93,33 +93,28 @@ const tabs: Tab[] = [
   },
 ];
 
-
-
-const ActiveJobPosting = ({ id }: { id: string }) => {
+const ActiveJobPosting = () => {
+  const { id } = useParams<{ id: string }>();
   const [isJobMenuOpen, setIsJobMenuOpen] = useState<number | null>(null);
   const [isLimitPopupOpen, setIsLimitPopupOpen] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
   const [activeTab, setActiveTab] = useState<string>(tabs[0].id);
   const [data, setData] = useState<any>(null);
+  console.log("data", data);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+
+  const images = "http://localhost:3000";
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        setError(null); // Clear previous errors
-
-        // Fetch data based on active tab
-        const response = await axiosInstance.get(`/${activeTab}/${id}`);
-
-        // const response = await axios.get(
-        //   `http://localhost:3000/api/${activeTab}/12345` // Replace `12345` with a dynamic `id` if needed
-        // );
-
-        setData(response.data); // Store the fetched data
+        setError(null);
+        const response = await axiosInstance.get(`/employers/${id}`);
+        setData(response.data);
       } catch (err) {
         setError("Failed to fetch data. Please try again.");
         console.error("Error fetching data:", err);
@@ -129,7 +124,7 @@ const ActiveJobPosting = ({ id }: { id: string }) => {
     };
 
     fetchData();
-  }, [activeTab]);
+  }, [id, activeTab]); // Added `id` dependency
 
   // Close the popup when clicking outside
   useEffect(() => {
@@ -155,14 +150,20 @@ const ActiveJobPosting = ({ id }: { id: string }) => {
     setIsJobMenuOpen((prev) => (prev === index ? null : index));
 
   const handleActionClick = (action: string, id: number) => {
-    if(action==="View"){
-      navigate(`/employers/${id}/outletDetails`)
+    if (action === "View") {
+      navigate(`/employers/${id}/outletDetails`);
     }
-    if(action ==="Show Job Details"){
-      navigate(`/jobs/${id}`)
+    if (action === "Show Job Details") {
+      navigate(`/jobs/${id}`);
     }
     setIsJobMenuOpen(null);
   };
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>{error}</p>;
+  if (!data || !data.employer) return <p>No data available</p>;
+
+  const employer = data.employer;
 
   return (
     <div className="p-6 min-h-screen font-sans">
@@ -170,7 +171,10 @@ const ActiveJobPosting = ({ id }: { id: string }) => {
       <div className="p-4">
         <div className="flex pb-3 justify-between items-center">
           <div>
-            <button className="p-[14px] rounded-[26px] shadow-lg bg-[#FFFFFF] hover:bg-gray-50 " onClick={() => navigate(-1)}>
+            <button
+              className="p-[14px] rounded-[26px] shadow-lg bg-[#FFFFFF] hover:bg-gray-50 "
+              onClick={() => navigate(-1)}
+            >
               <ArrowLeft className="w-[24px] h-[24px]" />
             </button>
           </div>
@@ -235,20 +239,20 @@ const ActiveJobPosting = ({ id }: { id: string }) => {
           {/* Company Info */}
           <div className="flex">
             <img
-              src="/assets/companyName.svg"
+              src={`${images}${employer.companyLogo}`}
               alt="Company Logo"
               className="w-28 h-28 rounded-lg"
             />
             <div className="ml-4 h-28 flex flex-col justify-between">
               <h1 className="text-lg flex items-center gap-2 font-semibold">
-                <span>RIGHT SERVICE PTE. LTD.</span>{" "}
+                <span>{employer.companyLegalName}</span>{" "}
                 <span className="px-6  py-1 bg-[#CEFFCF] text-[#049609] text-sm font-medium rounded-full mt-1">
-                  Active
+                  {employer.contractStatus}
                 </span>
               </h1>
               <div>
                 <span className="px-6  py-1 bg-[#FFE4DF] text-[#000000] font-medium text-sm rounded-lg mt-1">
-                  Hotel
+                  {employer.industry}
                 </span>
               </div>
               <div>
@@ -256,7 +260,7 @@ const ActiveJobPosting = ({ id }: { id: string }) => {
                   <Phone className="w-4 h-4" />
 
                   <span className="py-1 text-[#000] font-medium text-sm rounded-lg mt-1">
-                    +65-354566989
+                    {employer.companyNumber}
                   </span>
                 </h1>
               </div>
@@ -269,16 +273,22 @@ const ActiveJobPosting = ({ id }: { id: string }) => {
                   <MapPin className="w-4 h-4" />
                   HQ Address:
                 </span>{" "}
-                SengKang, Singapore
+                {employer.hqAddress}
               </p>
               <p className="flex gap-1 text-start items-center">
                 <span className="flex gap-1 text-[#048BE1] items-center">
                   <User className="w-4 h-4" />
                   Main Contact Person:
                 </span>{" "}
-                John Snow
+                {/* John Snow
                 <i className="font-normal">
                   {"("}Manager{")"}
+                </i> */}
+                {employer.mainContactPersonName}
+                <i className="font-normal">
+                  {"("}
+                  {employer.mainContactPersonPosition}
+                  {")"}
                 </i>
               </p>
               <p className="flex gap-1 text-start items-center">
@@ -286,7 +296,7 @@ const ActiveJobPosting = ({ id }: { id: string }) => {
                   <Phone className="w-4 h-4" />
                   Main Contact Number:
                 </span>{" "}
-                +65-3443534523
+                {employer.mainContactPersonNumber}
               </p>
               <p className="flex gap-1 text-start items-center">
                 <span className="flex gap-1 text-[#048BE1] items-center">
@@ -302,14 +312,20 @@ const ActiveJobPosting = ({ id }: { id: string }) => {
                   <Calendar className="w-4 h-4" />
                   Contact Start Date:
                 </span>{" "}
-                03 May, 2003
+                {
+                  new Date(employer.contractStartDate)
+                    .toISOString()
+                    .split("T")[0]
+                }
+                {/* {employer.contractStartDate} */}
               </p>
               <p className="flex gap-1 text-start items-center">
                 <span className="flex gap-1 text-[#048BE1] items-center">
                   <Calendar className="w-4 h-4" />
                   Contract End Date:
                 </span>{" "}
-                04 Oct, 2026
+                {new Date(employer.contractEndDate).toISOString().split("T")[0]}
+                {/* {employer.contractEndDate} */}
               </p>
               <p className="flex gap-1 text-start items-center">
                 <span className="flex gap-1 text-[#048BE1] items-center">
@@ -323,7 +339,7 @@ const ActiveJobPosting = ({ id }: { id: string }) => {
                   <PiFolderSimpleUserLight className="w-4 h-4" />
                   Account Manager:
                 </span>{" "}
-                Tyler Swift
+                {employer.accountManager}
               </p>
             </div>
           </div>
@@ -426,9 +442,15 @@ const ActiveJobPosting = ({ id }: { id: string }) => {
                       />
                     </div>
                   </td>
-                  <td className="py-6 px-8 truncate text-center text-[16px] leading-[20px] font-normal">{job.id}</td>
-                  <td className="py-6 px-8 truncate text-[16px] leading-[20px] font-normal">{job.address}</td>
-                  <td className="py-6 px-8 truncate text-center text-[16px] leading-[20px] font-normal ">{job.date}</td>
+                  <td className="py-6 px-8 truncate text-center text-[16px] leading-[20px] font-normal">
+                    {job.id}
+                  </td>
+                  <td className="py-6 px-8 truncate text-[16px] leading-[20px] font-normal">
+                    {job.address}
+                  </td>
+                  <td className="py-6 px-8 truncate text-center text-[16px] leading-[20px] font-normal ">
+                    {job.date}
+                  </td>
                   <td className="py-6 px-8 truncate text-center text-[16px] leading-[20px] font-normal">
                     {job.availableShifts}
                   </td>
@@ -441,7 +463,9 @@ const ActiveJobPosting = ({ id }: { id: string }) => {
                   <td className="py-6 px-8 truncate text-center text-[16px] leading-[20px] font-medium">
                     {job.break}
                     <br />
-                    <span className="text-[16px] leading-[20px] font-medium text-[#676767]">(Unpaid)</span>
+                    <span className="text-[16px] leading-[20px] font-medium text-[#676767]">
+                      (Unpaid)
+                    </span>
                   </td>
                   <td className="py-6 px-8 truncate text-center text-[16px] leading-[20px] font-medium">
                     {job.totalduration}
@@ -453,7 +477,9 @@ const ActiveJobPosting = ({ id }: { id: string }) => {
                       Standby: {job.standby}
                     </span>
                   </td>
-                  <td className="py-6 px-8 truncate text-center text-[16px] leading-[20px] font-normal">{job.rate}</td>
+                  <td className="py-6 px-8 truncate text-center text-[16px] leading-[20px] font-normal">
+                    {job.rate}
+                  </td>
                   <td className="py-6 px-8 truncate text-center text-[16px] leading-[20px] font-normal">
                     {job.jobstatus}
                   </td>
@@ -461,37 +487,37 @@ const ActiveJobPosting = ({ id }: { id: string }) => {
                     {job.totalwage}
                     {isJobMenuOpen === index && (
                       <div className="absolute top-[30%] right-12 mt-1 w-fit bg-white shadow-md border border-gray-300 rounded-md z-10">
-                      <button
-                        className="flex items-center gap-2 p-2 w-full text-left text-gray-700 hover:bg-gray-100"
-                        onClick={() => handleActionClick("View", index)}
-                      >
-                        <Eye size={16} />
-                        View
-                      </button>
-                      <button
-                        className="flex items-center gap-2 p-2 w-full text-left text-gray-700 hover:bg-gray-100"
-                        onClick={() =>
-                          handleActionClick("Edit", index)
-                        }
-                      >
-                        <Edit size={16} />
-                        Edit
-                      </button>
-                      <button
-                        className="flex items-center gap-2 p-2 w-full text-left text-gray-700 hover:bg-gray-100"
-                        onClick={() => handleActionClick("Duplicate", index)}
-                      >
-                        <GoDuplicate size={16}  />
-                        Duplicate
-                      </button>
-                      <button
-                        className="flex items-center gap-2 p-2 w-full text-left text-gray-700 hover:bg-gray-100"
-                        onClick={() => handleActionClick("Show Job Details", index)}
-                      >
-                        <IoMdInformationCircleOutline size={16}  />
-                        Show Job Details
-                      </button>
-                    </div>
+                        <button
+                          className="flex items-center gap-2 p-2 w-full text-left text-gray-700 hover:bg-gray-100"
+                          onClick={() => handleActionClick("View", index)}
+                        >
+                          <Eye size={16} />
+                          View
+                        </button>
+                        <button
+                          className="flex items-center gap-2 p-2 w-full text-left text-gray-700 hover:bg-gray-100"
+                          onClick={() => handleActionClick("Edit", index)}
+                        >
+                          <Edit size={16} />
+                          Edit
+                        </button>
+                        <button
+                          className="flex items-center gap-2 p-2 w-full text-left text-gray-700 hover:bg-gray-100"
+                          onClick={() => handleActionClick("Duplicate", index)}
+                        >
+                          <GoDuplicate size={16} />
+                          Duplicate
+                        </button>
+                        <button
+                          className="flex items-center gap-2 p-2 w-full text-left text-gray-700 hover:bg-gray-100"
+                          onClick={() =>
+                            handleActionClick("Show Job Details", index)
+                          }
+                        >
+                          <IoMdInformationCircleOutline size={16} />
+                          Show Job Details
+                        </button>
+                      </div>
                     )}
                   </td>
 
@@ -502,7 +528,6 @@ const ActiveJobPosting = ({ id }: { id: string }) => {
                     >
                       <MoreVertical />
                     </button>
-                    
                   </td>
                 </tr>
               ))}
@@ -537,7 +562,7 @@ const ActiveJobPosting = ({ id }: { id: string }) => {
               </tr>
             </thead>
             <tbody>
-              {outlets.map((outlet, index) => (
+              {/* {outlets.map((outlet, index) => (
                 <tr key={index} className="text-sm border-b-2">
                   <td className="py-6 px-8 truncate text-center">
                     <div>
@@ -560,6 +585,36 @@ const ActiveJobPosting = ({ id }: { id: string }) => {
                   </td>
                   <td className="py-6 px-8 truncate text-center">
                     {outlet.workerfeedback}
+                  </td>
+                </tr>
+              ))} */}
+              {employer.outlets?.map((outlet, index) => (
+                <tr key={index} className="text-sm border-b-2">
+                  <td className="py-6 px-8 truncate text-center flex gap-3">
+                    <div>
+                      <img
+                        className="h-5"
+                        // src={outlet.outletImage}
+                        src={`${images}${outlet.outletImage}`}
+                        alt={outlet.outletImage}
+                      />
+                    </div>
+                      <div>{outlet.outletName}</div>
+                  </td>
+                  <td className="py-6 px-8 truncate text-center">
+                    {outlet.outletAddress}
+                  </td>
+                  <td className="py-6 px-8 truncate text-center">
+                    {outlet.outletType}
+                  </td>
+                  <td className="py-6 px-8 truncate text-center">
+                    {employer.mainContactPersonName}
+                  </td>
+                  <td className="py-6 px-8 truncate text-center">
+                    {employer.mainContactPersonNumber}
+                  </td>
+                  <td className="py-6 px-8 truncate text-center">
+                    {employer.mainContactPersonPosition}
                   </td>
                 </tr>
               ))}

@@ -70,7 +70,8 @@ const jobs = [
   },
 ];
 
-const WorkHistory = () => {
+const WorkHistory = ({ workHistory }) => {
+  console.log(workHistory)
   const [isJobMenuOpen, setIsJobMenuOpen] = useState<number | null>(null);
 
   const toggleJobMenu = (index: number) =>
@@ -103,7 +104,7 @@ const WorkHistory = () => {
           </tr>
         </thead>
         <tbody className="relative">
-          {jobs.map((job, index) => (
+          {/* {jobs.map((job, index) => (
             <tr key={index} className="text-sm hover:bg-gray-50 normal-text">
               <td className="py-3 px-4 text-center truncate ">
                 <div className="flex items-center gap-4">
@@ -276,7 +277,89 @@ const WorkHistory = () => {
                 </div>
               </td>
             </tr>
-          ))}
+          ))} */}
+          {workHistory.map((job, index) => (
+  <tr key={index} className="text-sm hover:bg-gray-50 normal-text">
+    <td className="py-3 px-4 text-center truncate ">
+      <div className="flex items-center gap-4">
+        <button
+          onClick={() => toggleJobMenu(index)}
+          className="text-[#000000] hover:text-gray-700"
+        >
+          <MoreVertical />
+        </button>
+        {isJobMenuOpen === index && (
+          <div className="absolute top-10 left-0 mt-2 w-40 bg-white border rounded-lg shadow">
+            <div className="flex items-center gap-4 px-4 py-2 hover:bg-gray-100 cursor-pointer">
+              <Eye />
+              <p>Detail view</p>
+            </div>
+          </div>
+        )}
+        <div className="flex flex-col items-center gap-2">
+          <p className="text-[16px] leading-[20px] text-[#000000] font-semibold">
+            {job.jobName}
+          </p>
+          {/* <img
+            src="/assets/dominos-logo.png"
+            alt="company logo"
+            className="w-28 h-4"
+          /> */}
+        </div>
+      </div>
+    </td>
+    <td className="py-3 px-4 text-center truncate normal-text">{job.jobId}</td>
+    <td className="py-3 px-4 text-center truncate normal-text">{job.date}</td>
+    <td className="py-3 px-4 text-center truncate normal-text">{job.employer}</td>
+    <td className="py-3 px-4 text-center truncate normal-text">{job.shiftTiming}</td>
+    <td className="py-3 px-4 text-center truncate normal-text">{job.shiftId}</td>
+    <td className="py-3 px-4 text-center truncate">{job.clockedIn}</td>
+    <td className="py-3 px-4 text-center truncate">{job.clockedOut}</td>
+    <td className="py-3 px-4 text-center truncate normal-text">---------</td>
+    <td className="py-3 px-4 text-center truncate normal-text">{job.breakType}</td>
+    <td className="py-3 px-4 text-center truncate">
+      <p
+        className={`px-2 py-2 rounded-full text-[16px] leading-[20px] font-medium ${
+          job.fromConfirmedStandby === "Confirmed"
+            ? "bg-[#deffdf] text-[#049609]"
+            : "bg-[#fff7dc] text-[#d37700]"
+        }`}
+      >
+        {job.fromConfirmedStandby}
+      </p>
+    </td>
+    <td className="py-3 px-4 text-center truncate normal-text">{job.rateType}</td>
+    <td className="py-3 px-4 text-center truncate text-[16px] leading-[20px] font-medium">
+      {job.totalWage}
+    </td>
+    <td className="py-3 px-4 text-center truncate text-[16px] leading-[20px] font-medium">
+      {job.wageGenerated}
+    </td>
+    <td className="py-3 px-4 text-center truncate">
+      <p
+        className={`px-2 py-2 rounded-full text-[16px] leading-[20px] ${
+          job.jobStatus === "Completed"
+            ? "bg-[#e0f3ff] text-[#0099ff]"
+            : "bg-[#fff7dc] text-[#d37700]"
+        }`}
+      >
+        {job.jobStatus}
+      </p>
+    </td>
+    <td className="py-3 px-4 text-center truncate">
+      <p
+        className={`px-2 py-2 rounded-full text-[16px] leading-[20px] ${
+          job.paymentStatus === "Completed"
+            ? "bg-[#e0f3ff] text-[#0099ff]"
+            : "bg-[#fff7dc] text-[#d37700]"
+        }`}
+      >
+        {job.paymentStatus}
+      </p>
+    </td>
+  </tr>
+))}
+
         </tbody>
       </table>
     </div>
