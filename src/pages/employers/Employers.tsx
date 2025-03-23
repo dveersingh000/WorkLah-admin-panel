@@ -20,7 +20,7 @@ interface Employer {
   companyLegalName: string;
   companyLogo: string;
   mainContactPerson: string;
-  jobPosition: string;
+  mainContactPersonPosition: string;
   mainContactNumber: string;
   companyEmail: string;
   companyNumber: string;
@@ -60,7 +60,7 @@ const EmployerTable: React.FC = () => {
           companyLegalName: employer.companyLegalName || employer.companyName,
           hqAddress: employer.hqAddress,
           mainContactPerson: employer.mainContactPersonName || "N/A", // Fix Key
-          jobPosition: employer.jobPosition || "N/A",
+          mainContactPersonPosition: employer.mainContactPersonPosition || "N/A",
           mainContactNumber: employer.mainContactPersonNumber || "N/A", // Fix Key
           companyEmail: employer.companyEmail || "N/A",
           companyNumber: employer.companyNumber || "N/A",
@@ -218,7 +218,7 @@ const EmployerTable: React.FC = () => {
                     {employer.mainContactPerson}
                   </td>
                   <td className="border border-gray-300 py-2 px-4 text-center border-t-0 whitespace-nowrap w-max overflow-hidden text-ellipsis truncate-2">
-                    {employer.jobPosition}
+                    {employer.mainContactPersonPosition}
                   </td>
                   <td className="border border-gray-300 py-2 px-4 text-center border-t-0 whitespace-nowrap w-max overflow-hidden text-ellipsis truncate-2">
                     {employer.mainContactNumber}
