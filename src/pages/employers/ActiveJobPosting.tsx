@@ -42,67 +42,38 @@ const outlets = [
     workerfeedback: "4.2/5",
   },
 ];
-const jobs = [
-  {
-    titleimage: "/assets/plate.svg",
-    companyimage: "/assets/dominos-logo.png",
-    title: "Tray Collector",
-    id: "#12345",
-    date: "10/09/24",
-    availableShifts: 5,
-    break: "1 Hr ",
-    address: "150/4 Archinaville link, Banker Street",
-    vacancyfilled: "3/5",
-    standbyfilled: "1/2",
-    totalduration: "4hrs",
-    ratetype: "$55",
-    rate: "$10/hr",
-    jobstatus: "Active",
-    totalwage: "$30",
-  },
-  {
-    titleimage: "/assets/plate.svg",
-    companyimage: "/assets/kfc.png",
-    title: "Tray Collector",
-    id: "#12346",
-    date: "10/10/24",
-    availableShifts: 4,
-    break: "30 Min",
-    address: "150/4 Archinaville link, Banker Street",
-    vacancyfilled: "3/5",
-    standbyfilled: "1/2",
-    totalduration: "4hrs",
-    ratetype: "$55",
-    rate: "$10/hr",
-    jobstatus: "Active",
-    totalwage: "$30",
-  },
-];
-const tabs: Tab[] = [
-  {
-    id: "jobs",
-    title: "Active job postings",
-    value: jobs.length,
-    label: "postings",
-  },
-  {
-    id: "outlets",
-    title: "Number of Outlets",
-    value: outlets.length,
-    label: "outlets",
-  },
-];
+
 
 const ActiveJobPosting = () => {
   const { id } = useParams<{ id: string }>();
   const [isJobMenuOpen, setIsJobMenuOpen] = useState<number | null>(null);
   const [isLimitPopupOpen, setIsLimitPopupOpen] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
-  const [activeTab, setActiveTab] = useState<string>(tabs[0].id);
+  const [activeTab, setActiveTab] = useState<string>("jobs");
   const [data, setData] = useState<any>(null);
-  console.log("data", data);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [jobs, setJobs] = useState([]);
+  const [outlets, setOutlets] = useState([]);
+
+  console.log("jobs", jobs)
+  console.log("outlets", outlets)
+
+  const tabs: Tab[] = [
+    {
+      id: "jobs",
+      title: "Active job postings",
+      value: jobs.length,
+      label: "postings",
+    },
+    {
+      id: "outlets",
+      title: "Number of Outlets",
+      value: outlets.length,
+      label: "outlets",
+    },
+  ];
+
 
   const navigate = useNavigate();
 
@@ -115,6 +86,9 @@ const ActiveJobPosting = () => {
         setError(null);
         const response = await axiosInstance.get(`/employers/${id}`);
         setData(response.data);
+        console.log(response.data)
+        setJobs(response.data.jobs || []); 
+        setOutlets(response.data.employer.outlets || []);
       } catch (err) {
         setError("Failed to fetch data. Please try again.");
         console.error("Error fetching data:", err);
@@ -433,7 +407,7 @@ const ActiveJobPosting = () => {
                           src={job.titleimage}
                           alt={job.titleimage}
                         />
-                        {job.title}
+                        {job.jobName}
                       </div>
                       <img
                         className="h-5 mt-2"
@@ -443,7 +417,7 @@ const ActiveJobPosting = () => {
                     </div>
                   </td>
                   <td className="py-6 px-8 truncate text-center text-[16px] leading-[20px] font-normal">
-                    {job.id}
+                    {job._id}
                   </td>
                   <td className="py-6 px-8 truncate text-[16px] leading-[20px] font-normal">
                     {job.address}
@@ -455,36 +429,38 @@ const ActiveJobPosting = () => {
                     {job.availableShifts}
                   </td>
                   <td className="py-6 px-8 truncate text-center text-[16px] leading-[20px] font-medium">
-                    {job.vacancyfilled}
+                    {job.shifts.reduce((total, shift) => total + shift.vacancyFilled, 0)}
                   </td>
                   <td className="py-6 px-8 truncate text-center text-[16px] leading-[20px] font-medium">
-                    {job.standbyfilled}
+                  {job.shifts.reduce((total, shift) => total + shift.standbyFilled, 0)}
                   </td>
                   <td className="py-6 px-8 truncate text-center text-[16px] leading-[20px] font-medium">
-                    {job.break}
+                  {job.shifts.reduce((total, shift) => total + shift.breakHours, 0)}
                     <br />
                     <span className="text-[16px] leading-[20px] font-medium text-[#676767]">
                       (Unpaid)
                     </span>
                   </td>
                   <td className="py-6 px-8 truncate text-center text-[16px] leading-[20px] font-medium">
-                    {job.totalduration}
+                  {job.shifts.reduce((total, shift) => total + shift.duration, 0)}
+
                   </td>
                   <td className="py-3 px-4 text-center text-[16px] leading-[20px] font-normal">
                     {job.vacancy}
                     <br />
                     <span className="text-blue-500 bg-[#FFF1E3] px-3 py-1 rounded-full mt-1">
-                      Standby: {job.standby}
+                      Standby:{job.shifts.reduce((total, shift) => shift.rateType, 0)}
+
                     </span>
                   </td>
                   <td className="py-6 px-8 truncate text-center text-[16px] leading-[20px] font-normal">
-                    {job.rate}
+                  {job.shifts.reduce((total, shift) => total + shift.payRate, 0)}
                   </td>
                   <td className="py-6 px-8 truncate text-center text-[16px] leading-[20px] font-normal">
-                    {job.jobstatus}
+                    {job.jobStatus}
                   </td>
                   <td className="py-6 px-8 truncate text-center text-[16px] leading-[20px] font-semibold">
-                    {job.totalwage}
+                  {job.shifts.reduce((total, shift) => total + shift.totalWage, 0)}
                     {isJobMenuOpen === index && (
                       <div className="absolute top-[30%] right-12 mt-1 w-fit bg-white shadow-md border border-gray-300 rounded-md z-10">
                         <button

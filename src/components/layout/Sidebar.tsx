@@ -16,6 +16,7 @@ const menuItems: MenuItem[] = [
   { icon: "/assets/icons/sidebar_icon4.svg", text: "Employers", path: "/employers" },
   { icon: "/assets/icons/sidebar_icon5.svg", text: "Payments & Transactions", path: "/payments" },
   { icon: "/assets/icons/sidebar_icon6.svg", text: "Support & Feedback", path: "/support" },
+  { icon: "/assets/icons/sidebar_icon6.svg", text: "QR Code Management", path: "/qrCode" },
 ];
 
 const Sidebar: React.FC = () => {
