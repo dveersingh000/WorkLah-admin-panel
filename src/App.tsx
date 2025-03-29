@@ -19,6 +19,7 @@ import { useAuth, AuthProvider } from "./context/AuthContext";
 import NewJob from "./pages/jobManagemant/NewJob";
 import ModifyJob from "./pages/jobManagemant/ModifyJob";
 import AddEmployer from "./pages/employers/AddEmployer";
+import QRCodeManagement from "./pages/qrCode/QrCode";
 
 const AppContent: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
@@ -50,6 +51,9 @@ const AppContent: React.FC = () => {
 
           <Route path="hustle-heroes" element={<HustleHeroesList />} />
           <Route path="payments" element={<EmployeePayments />} />
+
+          <Route path="qrCode" element={<QRCodeManagement />} />
+
         </Route>
       {/* </Route> */}
     </Routes>
