@@ -15,16 +15,16 @@ type totalJobPostedTyep = {
 
 const Dashboard = () => {
   const [selectedCard, setSelectedCard] = useState(null); // State to track the selected card
-  const [dashboardData ,setDashboardData] = useState(0);
+  const [dashboardData, setDashboardData] = useState(0);
   const [postedJobs, setPostedJobs] = useState(0)
-   const [queryParams, setQueryParams] = useState({
-      search: "",
-      status: "",
-      location: "",
-      page: 1,
-      limit: 1000,
-    });
-    const today = new Date();
+  const [queryParams, setQueryParams] = useState({
+    search: "",
+    status: "",
+    location: "",
+    page: 1,
+    limit: 1000,
+  });
+  const today = new Date();
   const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 
   const [startDate, setStartDate] = useState(firstDayOfMonth);
@@ -38,7 +38,7 @@ const Dashboard = () => {
     try {
       const response = await axiosInstance.get(`/dashboard/overview`);
       console.log("API Response:", response.data);
-  
+
       setDashboardData({
         totalJobs: response.data.totalJobs || 0,
         activatedHeroes: response.data.activatedHeroes || 0,
@@ -54,13 +54,13 @@ const Dashboard = () => {
       console.error("Error fetching job details:", error);
     }
   };
-  
-  
-    useEffect(() => {
-      fetchJobDetails();
-    }, []);
 
-  
+
+  useEffect(() => {
+    fetchJobDetails();
+  }, []);
+
+
 
   const cards = [
     {
@@ -120,7 +120,7 @@ const Dashboard = () => {
       icon: "/assets/icons/group2.svg",
     },
   ];
-  
+
 
   const CustomInput = React.forwardRef(({ value, onClick, label }, ref) => (
     <div
@@ -137,11 +137,11 @@ const Dashboard = () => {
     <div className="space-y-6 p-6">
       <div className="flex justify-between items-center">
         <h1 className="text-[24px] font-medium leading-[30px] text-[#1f2937] pl-2 border-l-[12px] border-[#FED408]">Dashboard Overview</h1>
-        <div className="flex items-center gap-4">
+        {/* <div className="flex items-center gap-4">
           <Link to='/jobs/create-job'>
-          <button className=" px-8 py-2 text-white bg-[#048be1] cursor-pointer mt-4 rounded-lg">
-            Add New Job
-          </button>
+            <button className=" px-8 py-2 text-white bg-[#048be1] cursor-pointer mt-4 rounded-lg">
+              Add New Job
+            </button>
           </Link>
           <div>
             <label className="block text-[14px] font-medium text-[#636363]">
@@ -165,7 +165,7 @@ const Dashboard = () => {
               customInput={<CustomInput label="Select End Date" />}
             />
           </div>
-        </div>
+        </div> */}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -173,11 +173,10 @@ const Dashboard = () => {
           <div
             key={index}
             onClick={() => handleCardClick(index)}
-            className={`cursor-pointer rounded-lg ${
-              selectedCard === index
+            className={`cursor-pointer rounded-lg ${selectedCard === index
                 ? "border-2 border-black"
                 : "border border-gray-200"
-            }`}
+              }`}
           >
             <DashboardCard
               title={card.title}
@@ -190,7 +189,7 @@ const Dashboard = () => {
         ))}
       </div>
 
-      <JobPostChart  />
+      <JobPostChart />
       <RevenueChart />
     </div>
   );

@@ -78,7 +78,7 @@ export default function EditCandidateProfile() {
     country: '',
     city: '',
     street: '',
-    fullAddress: '121/23, lorem epsilum'
+    // fullAddress: '121/23, lorem epsilum'
   })
 
   const [activeTab, setActiveTab] = useState("jobHistory");
@@ -566,7 +566,7 @@ export default function EditCandidateProfile() {
               </div>
 
               {/* Full Address */}
-              <div className="">
+              {/* <div className="">
                 <label className="block text-sm mb-2">Full Address</label>
                 <div className="relative">
                   <input
@@ -577,7 +577,7 @@ export default function EditCandidateProfile() {
                   <PencilIcon className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 </div>
               </div>
-              <div></div>
+              <div></div> */}
 
               {/* Buttons */}
              

@@ -90,7 +90,7 @@ export default function ProfileDashboard() {
     foodHygineCert: userData?.candidateProfile?.personalDetails?.foodHygieneCert || "N/A",
     icNumber: userData?.candidateProfile?.personalDetails?.icNumber || "N/A",
   };
-  
+
 
   const activeJobs: ActiveJobs = {
     job: userData?.activeJob?.jobName || "N/A",
@@ -104,7 +104,7 @@ export default function ProfileDashboard() {
     wageGenerated: userData?.activeJob?.wageGenerated || "N/A",
     rateType: userData?.activeJob?.rateType || "N/A",
   };
-  
+
 
   const customLabels: Record<string, string> = {
     candidateId: "Candidate ID",
@@ -135,13 +135,13 @@ export default function ProfileDashboard() {
   useEffect(() => {
     // Fetch employees from API
     axiosInstance.get(`/admin/candidates/${id}`)
-        .then(response => {
-          // console.log("response", response.data)
-          setUserData(response.data);
-        })
-        .catch(error => {
-            console.error("Error fetching employees:", error);
-        });
+      .then(response => {
+        // console.log("response", response.data)
+        setUserData(response.data);
+      })
+      .catch(error => {
+        console.error("Error fetching employees:", error);
+      });
   }, []);
 
   const getIcon = (key: string) => {
@@ -252,7 +252,7 @@ export default function ProfileDashboard() {
                 <p className="text-[16px] leading-[24px] font-medium text-[#4c4c4c]">
                   Registered at:{" "}
                   <span className="text-[#000000] text-[16px] leading-[24px] font-medium ml-2">
-                  {userData?.candidateProfile?.registeredAt || "N/A"}
+                    {userData?.candidateProfile?.registeredAt || "N/A"}
                   </span>
                 </p>
               </p>
@@ -294,6 +294,41 @@ export default function ProfileDashboard() {
                 ))}
               </div>
             </div>
+          </div>
+          
+          {/* Stats Section */}
+          <div className="bg-white rounded-3xl py-8 px-12 shadow-sm border border-gray-200 z-10">
+            <div className="flex gap-6 py-8 border-b">
+              {tabs.map((tab) => {
+                const Icon = tab.icon; // Get the icon for the current tab
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)} // Set the active tab on click
+                    className={`px-[38px] py-[18px] flex items-center gap-4 rounded-[10px] text-[16px] leading-[20px] font-medium 
+              ${activeTab === tab.id
+                        ? "bg-[#048BE1] text-white " // Active styles
+                        : "bg-[#EBEBEB] text-black" // Inactive styles
+                      }`}
+                  >
+                    <Icon
+                      className={activeTab === tab.id ? "h-7 w-7" : "h-6 w-6"}
+                      color={activeTab === tab.id ? "#ffffff" : "#000000"}
+                    />
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {activeTab === "jobHistory" ? (
+              <WorkHistory workHistory={userData?.jobHistory || []} />
+            ) : activeTab === "workHistory" ? (
+              <JobHistory jobHistory={userData?.workHistory || {}} />
+            ) : (
+              <div></div>
+            )}
+
           </div>
           <div className=" bg-white rounded-3xl p-6 shadow-sm border border-gray-200 px-12">
             <h2 className="font-semibold mb-4 text-[16px] text-[#000000]">
@@ -348,41 +383,6 @@ export default function ProfileDashboard() {
                 </div>
               ))}
             </div>
-          </div>
-          {/* Stats Section */}
-          <div className="bg-white rounded-3xl py-8 px-12 shadow-sm border border-gray-200 z-10">
-            <div className="flex gap-6 py-8 border-b">
-              {tabs.map((tab) => {
-                const Icon = tab.icon; // Get the icon for the current tab
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)} // Set the active tab on click
-                    className={`px-[38px] py-[18px] flex items-center gap-4 rounded-[10px] text-[16px] leading-[20px] font-medium 
-              ${
-                activeTab === tab.id
-                  ? "bg-[#048BE1] text-white " // Active styles
-                  : "bg-[#EBEBEB] text-black" // Inactive styles
-              }`}
-                  >
-                    <Icon
-                      className={activeTab === tab.id ? "h-7 w-7" : "h-6 w-6"}
-                      color={activeTab === tab.id ? "#ffffff" : "#000000"}
-                    />
-                    {tab.label}
-                  </button>
-                );
-              })}
-            </div>
-
-            {activeTab === "jobHistory" ? (
-              <WorkHistory workHistory={userData?.jobHistory || []} />
-            ) : activeTab === "workHistory" ? (
-              <JobHistory jobHistory={userData?.workHistory || {}} />
-            ) : (
-              <div></div>
-            )}
-
           </div>
         </div>
       </div>
