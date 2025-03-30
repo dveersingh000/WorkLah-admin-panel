@@ -82,7 +82,7 @@ const JobManagement = () => {
 
   const popupRef = useRef<HTMLDivElement>(null);
 
-  const companyImage = "http://localhost:3000";
+  const companyImage = "https://worklah.onrender.com";
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

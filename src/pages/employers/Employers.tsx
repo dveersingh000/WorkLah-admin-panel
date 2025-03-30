@@ -41,7 +41,7 @@ const EmployerTable: React.FC = () => {
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
 
   const navigate = useNavigate()
-  const images = "http://localhost:3000"
+  const images = "https://worklah.onrender.com"
 
   // useEffect(() => {
     const fetchData = async () => {
