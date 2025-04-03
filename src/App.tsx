@@ -29,7 +29,7 @@ const AppContent: React.FC = () => {
       <Route path="login" element={<SignIn />} />
 
       {/* Protected Routes */}
-      {/* <Route element={<PrivateRoute />}> */}
+      <Route element={<PrivateRoute />}>
         <Route path="/" element={<Layout />}>
           <Route index element={<Dashboard />} />
           {/* Job Management */}
@@ -55,7 +55,7 @@ const AppContent: React.FC = () => {
           <Route path="qrCode" element={<QRCodeManagement />} />
 
         </Route>
-      {/* </Route> */}
+      </Route>
     </Routes>
   );
 };

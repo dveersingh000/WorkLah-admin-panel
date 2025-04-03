@@ -7,7 +7,7 @@ export const axiosInstance = axios.create({
     // baseURL:"https://admin-panel-backend-imbt.onrender.com/api",
     baseURL:"https://worklah.onrender.com/api",
     headers: {
-      "Content-Type": "multipart/form-data",
+      "Content-Type": "application/json",
     },
     withCredentials: true
 })
