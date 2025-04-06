@@ -64,9 +64,9 @@ const JobManagement = () => {
     status: "",
     location: "",
     page: 1,
-    limit: 10,
+    limit: 5,
+    sortOrder: "desc"
   });
-  const [allData, setAllData] = useState({});
   const [isPopupOpen, setIsPopupOpen] = useState<number | null>(null);
   const [jobsData, setJobsData] = useState([]);
   const [totalData, setTotalData] = useState([]);
@@ -79,6 +79,35 @@ const JobManagement = () => {
   const [upcomingJobs, setUpcomingJobs] = useState(0);
   const [cancelledJobs, setCancelledJobs] = useState(0);
   const [attendanceRate, setAttendanceRate] = useState(0);
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedOption, setSelectedOption] = useState("desc")
+  const [selectedEmployers, setSelectedEmployers] = useState<Employer[]>([])
+  console.log("selectedEmployers", selectedEmployers)
+
+
+  const options = [
+    { label: "Most Recent Required", value: "mostRecent" },
+    { label: "Ascending", value: "asc" },
+    { label: "Descending", value: "desc" },
+  ];
+
+  const handleSelect = (value: string) => {
+    let sortOrder = value === "mostRecent" ? "desc" : value;
+  
+    setSelectedOption(value);
+    setQueryParams((prev) => ({
+      ...prev,
+      sortOrder,
+      page: 1,
+    }));
+    setIsOpen(false);
+  };
+
+  const getLabel = (value: string) => {
+    if (value === "asc") return "Ascending";
+    if (value === "desc") return "Descending";
+    return "Most Recent Required";
+  };
 
   const popupRef = useRef<HTMLDivElement>(null);
 
@@ -142,6 +171,8 @@ const JobManagement = () => {
         return "border-l-4 border-l-green-500";
       case "Ongoing":
         return "border-l-4 border-l-[#D37700]";
+        case "Upcoming":
+          return "border-l-4 border-l-orange-500";        
       case "Cancelled":
         return "border-l-4 border-l-[#E34E30]";
       case "Completed":
@@ -158,7 +189,16 @@ const JobManagement = () => {
   };
 
   const fetchJobDetails = async (params) => {
-    const queryString = new URLSearchParams(params).toString();
+    const selectedEmployerId = selectedEmployers?.[0]?.id;
+
+    const updatedParams = {
+      ...params,
+      ...(selectedEmployerId && { employerId: selectedEmployerId })
+    };
+  
+    const queryString = new URLSearchParams(updatedParams).toString();
+  
+  
 
     try {
       const response = await axiosInstance.get(`/admin/jobs?${queryString}`);
@@ -178,6 +218,18 @@ const JobManagement = () => {
     }
   };
 
+  const handlePageChange = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
+    setQueryParams((prev) => ({
+      ...prev,
+      page: pageNumber,
+    }));
+  };
+  
+
+  const totalPages = Math.ceil((totalData?.totalCount || 0) / queryParams.limit);
+
+
   const updateJobStatus = async (jobId, status) => {
     try {
       await axiosInstance.put(`/jobs/${jobId}`, { status });
@@ -190,7 +242,7 @@ const JobManagement = () => {
   // console.log(jobsData);
   useEffect(() => {
     fetchJobDetails(queryParams);
-  }, [queryParams]);
+  }, [queryParams, selectedEmployers]);
 
   const handlePopupToggle = (index: number) => {
     setIsPopupOpen(isPopupOpen === index ? null : index);
@@ -277,6 +329,23 @@ const JobManagement = () => {
                 />
               </div>
             </div>
+            <button
+  onClick={() => {
+    const formattedStart = startDate.toISOString().split("T")[0];
+    const formattedEnd = endDate.toISOString().split("T")[0];
+
+    setQueryParams((prev) => ({
+      ...prev,
+      startDate: formattedStart,
+      endDate: formattedEnd,
+      page: 1,
+    }));
+  }}
+  className="mt-6 px-4 py-2 rounded-xl bg-[#048be1] text-white text-sm font-medium"
+>
+  Apply Filter
+</button>
+
             <Link to="/jobs/create-job">
               <button className="p-[14px] rounded-[26px] shadow-lg bg-[#FFFFFF] hover:bg-gray-50 ">
                 <Plus className="w-[24px] h-[24px]" />
@@ -296,13 +365,25 @@ const JobManagement = () => {
                 </button>
 
                 {isLimitPopupOpen && (
-                  <div
-                    ref={popupRef}
-                    className="absolute right-[16%] top-[12%] mt-2 bg-white border rounded-[20px] shadow-lg z-50"
-                  >
-                    <JobFilter />
-                  </div>
-                )}
+  <div
+    ref={popupRef}
+    className="absolute right-[16%] top-[12%] mt-2 bg-white border rounded-[20px] shadow-lg z-50"
+  >
+    <JobFilter
+      onApplyFilter={(newFilters) => {
+        setQueryParams((prev) => ({
+          ...prev,
+          status: newFilters.status?.[0] || "",
+          location: newFilters.city?.[0] || "",
+          // You can include shift range here too
+          page: 1,
+        }));
+      }}
+      onClose={() => setIsLimitPopupOpen(false)} // 👈 Close the filter modal
+    />
+  </div>
+)}
+
               </div>
             </div>
           </div>
@@ -318,7 +399,7 @@ const JobManagement = () => {
               {totalData.totalActiveJobs}
             </h2>
             <p className="text-[20px] leading-[25px] font-medium text-[#4c4c4c]">
-              Total Active Jobs
+              Active Jobs
             </p>
           </div>
           <div className="rounded-lg flex flex-col items-center">
@@ -362,7 +443,7 @@ const JobManagement = () => {
             <div className="flex items-center gap-4">
               <p className="w-[6px] h-8  bg-orange-500 "></p>
               <p className="text-[20px] leading-[24px] font-medium ">
-                Moderate Demand Jobs
+              Soon-to-Start Jobs
               </p>
             </div>
             <Info className="w- h-8 cursor-pointer" />
@@ -393,25 +474,54 @@ const JobManagement = () => {
                   </button>
 
                   {isEmployerPopupOpen && (
-                    <div
-                      ref={popupRef}
-                      className="absolute left-[1%] top-[18%] mt-2  bg-white border rounded-[20px] shadow-lg z-50"
-                    >
-                      <JobEmployerFilter />
-                    </div>
-                  )}
+  <div
+    ref={popupRef}
+    className="absolute left-[1%] top-[18%] mt-2 bg-white border rounded-[20px] shadow-lg z-50"
+  >
+    <JobEmployerFilter
+      onClose={() => setIsEmployerPopupOpen(false)}
+      onSelect={(selected) => {
+        setSelectedEmployers(selected)
+        // Do something with selected if needed
+      }}
+    />
+  </div>
+)}
+
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-4 bg-white text-black border border-black px-4 py-2 rounded-xl cursor-pointer">
-              <p>Most Recent Required</p>
-              <FaCaretDown />
-            </div>
+            <div className="relative inline-block text-left">
+            <div
+        className="flex items-center gap-4 bg-white text-black border border-black px-4 py-2 rounded-xl cursor-pointer"
+        onClick={() => setIsOpen(!isOpen)} // toggle dropdown
+      >
+        <p>{getLabel(selectedOption)}</p>
+        <FaCaretDown />
+      </div>
+
+      {isOpen && (
+        <div className="absolute z-10 mt-2 w-full bg-white border border-black rounded-xl shadow-lg">
+          <ul className="py-1">
+          {options.map((option, index) => (
+              <li
+                key={index}
+                className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                onClick={() => handleSelect(option.value)}
+              >
+                {option.label}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      </div>
+            
           </div>
-          <div className="flex items-center gap-4 bg-white text-black border border-black px-4 py-2 rounded-xl cursor-pointer">
+          {/* <div className="flex items-center gap-4 bg-white text-black border border-black px-4 py-2 rounded-xl cursor-pointer">
             <p>All</p>
             <FaCaretDown />
-          </div>
+          </div> */}
         </div>
 
         {/* Jobs Table */}
@@ -648,41 +758,42 @@ const JobManagement = () => {
           totalSteps={3}
         />
         {/* Pagination */}
-        <div className="flex justify-center items-center gap-2">
-          <button className="px-3 py-1 border border-gray-300 rounded-md bg-white hover:bg-gray-50">
-            ←
-          </button>
-          <div className="flex gap-1">
-            <button className="px-3 py-1 border border-blue-500 rounded-md bg-blue-500 text-white">
-              1
-            </button>
-            <button className="px-3 py-1 border border-gray-300 rounded-md bg-white hover:bg-gray-50">
-              2
-            </button>
-            <button className="px-3 py-1 border border-gray-300 rounded-md bg-white hover:bg-gray-50">
-              3
-            </button>
-            <button className="px-3 py-1 border border-gray-300 rounded-md bg-white hover:bg-gray-50">
-              4
-            </button>
-            <span className="px-3 py-1">...</span>
-            <button className="px-3 py-1 border border-gray-300 rounded-md bg-white hover:bg-gray-50">
-              55
-            </button>
-            <button className="px-3 py-1 border border-gray-300 rounded-md bg-white hover:bg-gray-50">
-              56
-            </button>
-            <button className="px-3 py-1 border border-gray-300 rounded-md bg-white hover:bg-gray-50">
-              57
-            </button>
-            <button className="px-3 py-1 border border-gray-300 rounded-md bg-white hover:bg-gray-50">
-              58
-            </button>
-          </div>
-          <button className="px-3 py-1 border border-gray-300 rounded-md bg-white hover:bg-gray-50">
-            →
-          </button>
-        </div>
+        <div className="flex justify-center items-center gap-2 mt-6">
+  <button
+    onClick={() => handlePageChange(currentPage - 1)}
+    disabled={currentPage === 1}
+    className="px-3 py-1 border border-gray-300 rounded-md bg-white hover:bg-gray-50 disabled:opacity-50"
+  >
+    ←
+  </button>
+
+  {/* Dynamic page buttons */}
+  {[...Array(totalPages)].map((_, index) => {
+    const pageNumber = index + 1;
+    return (
+      <button
+        key={pageNumber}
+        onClick={() => handlePageChange(pageNumber)}
+        className={`px-3 py-1 border rounded-md ${
+          pageNumber === currentPage
+            ? "border-blue-500 bg-blue-500 text-white"
+            : "border-gray-300 bg-white hover:bg-gray-50"
+        }`}
+      >
+        {pageNumber}
+      </button>
+    );
+  })}
+
+  <button
+    onClick={() => handlePageChange(currentPage + 1)}
+    disabled={currentPage === totalPages}
+    className="px-3 py-1 border border-gray-300 rounded-md bg-white hover:bg-gray-50 disabled:opacity-50"
+  >
+    →
+  </button>
+</div>
+
       </div>
     </div>
   );

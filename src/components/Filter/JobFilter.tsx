@@ -11,7 +11,12 @@ interface FilterState {
   }
 }
 
-export default function JobFilter() {
+interface JobFilterProps {
+  onApplyFilter: (filters: FilterState) => void
+  onClose: () => void
+}
+
+export default function JobFilter({ onApplyFilter, onClose }: JobFilterProps) {
   const [isStatusOpen, setIsStatusOpen] = useState(true)
   const [isCityOpen, setIsCityOpen] = useState(true)
   const [filters, setFilters] = useState<FilterState>({
@@ -21,7 +26,7 @@ export default function JobFilter() {
       min: 1,
       max: 30
     }
-  })
+  }) 
 
   const [sliderValue, setSliderValue] = useState([10, 20])
 
@@ -86,7 +91,7 @@ export default function JobFilter() {
       </div>
 
       {/* City Section */}
-      <div className="mb-6">
+      {/* <div className="mb-6">
         <button
           className="flex items-center justify-between w-full mb-4"
           onClick={() => setIsCityOpen(!isCityOpen)}
@@ -116,10 +121,10 @@ export default function JobFilter() {
             ))}
           </div>
         )}
-      </div>
+      </div> */}
 
       {/* Number of Shifts Section */}
-      <div>
+      {/* <div>
         <h3 className="text-base font-medium mb-4">Number of Shifts</h3>
         <div className="relative pt-6 pb-2">
           <div className="relative">
@@ -165,7 +170,17 @@ export default function JobFilter() {
             <span className="text-sm">{sliderValue[1]}</span>
           </div>
         </div>
-      </div>
+      </div> */}
+      <button
+  className="mt-6 w-full px-4 py-2 bg-[#048be1] text-white text-sm font-medium rounded-lg"
+  onClick={() => {
+    onApplyFilter(filters)
+    onClose() 
+  }}
+>
+        Apply Filters
+      </button>
+
     </div>
   )
 }

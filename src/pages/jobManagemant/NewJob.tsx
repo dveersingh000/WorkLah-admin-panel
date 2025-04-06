@@ -826,6 +826,8 @@ export default function NewJob() {
                     <div className="flex justify-between items-center gap-2 p-3 border rounded-xl bg-white h-12">
                       <button
                         className=" bg-blue-50 rounded-lg px-2 py-1 focus:outline-none text-sm"
+                        type="button"
+
                         onClick={() =>
                           updateShift(
                             shift.id,
@@ -850,6 +852,8 @@ export default function NewJob() {
                       />
                       <button
                         className=" bg-blue-50 rounded-lg px-2 py-1 focus:outline-none text-sm"
+                        type="button"
+
                         onClick={() =>
                           updateShift(shift.id, "vacancy", shift.vacancy + 1)
                         }
@@ -866,6 +870,8 @@ export default function NewJob() {
                     <div className="flex justify-between items-center gap-2 p-3 border rounded-xl bg-white h-12">
                       <button
                         className=" bg-blue-50 rounded-lg px-2 py-1 focus:outline-none text-sm"
+                        type="button"
+
                         onClick={() =>
                           updateShift(
                             shift.id,
@@ -890,6 +896,7 @@ export default function NewJob() {
                       />
                       <button
                         className=" bg-blue-50 rounded-lg px-2 py-1 focus:outline-none text-sm"
+                        type="button"
                         onClick={() =>
                           updateShift(
                             shift.id,
@@ -926,6 +933,7 @@ export default function NewJob() {
                     <label className="text-sm font-medium">Break Hours</label>
                     <div className="flex justify-between items-center gap-2 p-3 border rounded-xl bg-white h-12">
                       <button
+                      type="button"
                         className=" bg-blue-50 rounded-lg px-2 py-1 focus:outline-none text-sm"
                         onClick={() =>
                           updateShift(
@@ -951,6 +959,7 @@ export default function NewJob() {
                       />
                       <button
                         className=" bg-blue-50 rounded-lg px-2 py-1 focus:outline-none text-sm"
+                         type="button"
                         onClick={() =>
                           updateShift(
                             shift.id,

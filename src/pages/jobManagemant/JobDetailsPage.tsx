@@ -21,53 +21,6 @@ import { axiosInstance } from "../../lib/authInstances";
 import { convertIdToFourDigits, formatDate } from "../../lib/utils";
 import OutletFilter from "../../components/Filter/OutletFilter";
 
-const shiftsData = [
-  {
-    id: "1",
-    shiftStartTime: "07:00 AM",
-    shiftEndTime: "11:00 AM",
-    shiftId: "#3435",
-    vacancyFilled: 0,
-    standbyFilled: 1,
-    totalDuration: "4 Hrs",
-    rateType: "Flat Rate",
-    breakIncluded: "1 Hrs",
-    breakType: "Paid",
-    rate: "$10/hr",
-    totalWage: "$90",
-    jobStatus: "Completed",
-  },
-  {
-    id: "2",
-    shiftStartTime: "11:00 AM",
-    shiftEndTime: "04:00 PM",
-    shiftId: "#3435",
-    vacancyFilled: 3,
-    standbyFilled: 1,
-    totalDuration: "4 Hrs",
-    rateType: "Flat Rate",
-    breakIncluded: "1 Hrs",
-    breakType: "Paid",
-    rate: "$10/hr",
-    totalWage: "$90",
-    jobStatus: "Completed",
-  },
-  {
-    id: "3",
-    shiftStartTime: "04:00 PM",
-    shiftEndTime: "07:00 PM",
-    shiftId: "#3435",
-    vacancyFilled: 3,
-    standbyFilled: 1,
-    totalDuration: "4 Hrs",
-    rateType: "Flat Rate",
-    breakIncluded: "1 Hrs",
-    breakType: "Unpaid",
-    rate: "$10/hr",
-    totalWage: "$90",
-    jobStatus: "Active",
-  },
-];
 const JobDetailsPage = () => {
   
   const maxStandby = 1;
@@ -80,6 +33,7 @@ const JobDetailsPage = () => {
   const [shifts, setShifts] = useState( []);
   const [isLimitPopupOpen, setIsLimitPopupOpen] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
+  const [outlet, setOutet] = useState(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -107,7 +61,10 @@ const JobDetailsPage = () => {
       const response = await axiosInstance.get(`/admin/jobs/${jobId}`);
       
       if (response.data.success) {
+        console.log("mew 6666", response.data.job)
         const job = response.data.job; // Extract the job object
+        const outletId = response.data.job.outlet._id
+        setOutet(outletId)
         setJobsData(job);
         setShifts(job.shifts || []); // Ensure shifts are properly assigned
       } else {
@@ -243,7 +200,7 @@ const JobDetailsPage = () => {
             <div className="text-left flex flex-col gap-6">
               <div className="flex items-center gap-4">
                 <p className="text-[#4C4C4C] text-[16px] leading-[20px] font-semibold">
-                  Employer :
+                  Employer : {jobsData.employer?.name}
                 </p>
                 <div className="flex w-max gap-1 items-center align-middle">
                   <img
@@ -282,7 +239,7 @@ const JobDetailsPage = () => {
                 <ul className="py-2">
                   {/* Edit Candidate */}
                   <li>
-                    <Link to="/jobs/modify">
+                    <Link to={`/jobs/${jobId}/modify`}>
                       <button className="flex items-center w-full px-4 py-2 text-sm text-[#000000] hover:bg-gray-100">
                         <FiEdit3 className="w-4 h-4 mr-2 text-gray-500" />
                         Modify
@@ -301,11 +258,23 @@ const JobDetailsPage = () => {
                   </li>
                   {/* Block Candidate */}
                   <li>
-                    <button className="flex items-center w-full px-4 py-2 text-sm text-[#941F15] hover:bg-red-100">
-                      <Ban className="w-4 h-4 mr-2 text-red-500" />
-                      Cancel Job
-                    </button>
-                  </li>
+  <button
+    className="flex items-center w-full px-4 py-2 text-sm text-[#941F15] hover:bg-red-100"
+    onClick={async () => {
+      try {
+        await axiosInstance.delete(`/admin/jobs/${jobId}`);
+        navigate(-1); // Go back one page after successful cancellation
+      } catch (error) {
+        console.error("Error cancelling job:", error);
+        // Optionally, show toast or alert here
+      }
+    }}
+  >
+    <Ban className="w-4 h-4 mr-2 text-red-500" />
+    Cancel Job
+  </button>
+</li>
+
                 </ul>
               </div>
             )}
@@ -331,9 +300,9 @@ const JobDetailsPage = () => {
                   {jobsData.shortAddress}
                   </p>
                 </div>
-                <p className="text-[12px] text-[#0099FF] leading-[18px] font-normal underline">
+                {/* <p className="text-[12px] text-[#0099FF] leading-[18px] font-normal underline">
                   View on map
-                </p>
+                </p> */}
               </div>
             </div>
             <div className="mt-4 flex gap-4">
@@ -343,7 +312,7 @@ const JobDetailsPage = () => {
                   <ArrowRight className="w-7 h-7" />
                 </button>
               </Link>
-              <Link to={`/jobs/${jobId}/outlate-attendnce`}>
+              <Link to={`/jobs/${outlet}/outlate-attendnce`}>
                 <button className="bg-blue-500 text-white px-4 py-2 rounded-xl flex items-center gap-2">
                   Outlet Attendance Rate
                   <ArrowRight className="w-7 h-7" />

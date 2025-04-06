@@ -33,7 +33,9 @@ const DashboardCard: React.FC<DashboardCardProps> = ({
   const handleNaviagtion = (title:string) =>{
       if(title === "Total Job Posted"){
           navigate('/jobs/job-management')
-      }
+      } else if (title === "Activated Hustle Heroes"){
+        navigate('/hustle-heroes')
+    }
   }
 
   return (

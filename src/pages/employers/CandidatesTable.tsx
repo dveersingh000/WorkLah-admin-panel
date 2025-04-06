@@ -85,6 +85,7 @@ export default function CandidateManagement() {
   const [isPopupOpen, setIsPopupOpen] = useState<number | null>(null);
   const [isEditTime, setIsEditTime] = useState(false);
   const [loading, setLoading] = useState(true);
+    
 
   const navigate = useNavigate()
   const {jobId} = useParams()
@@ -94,7 +95,7 @@ export default function CandidateManagement() {
     const fetchCandidates = async () => {
       try {
         const response = await axiosInstance.get(`/admin/jobs/candidates/${jobId}`);
-        console.log(response)
+        console.log("hello",response.data)
         setCandidates(response.data.candidates)
         setData(response.data)
       } catch (error) {
