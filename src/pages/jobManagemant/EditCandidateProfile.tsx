@@ -22,7 +22,7 @@ import {
   PencilIcon,
   CalendarIcon,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FaRegIdCard } from "react-icons/fa";
 import {
   MdOutlineDateRange,
@@ -66,20 +66,23 @@ interface ActiveJobs {
 
 export default function EditCandidateProfile() {
   const { id } = useParams<{ id: string }>();
-  const [formData, setFormData] = useState({
-    name: '',
-    gender: 'Male',
-    workPassStatus: 'Verified',
-    dob: "01/01/2002",
-    status: '',
-    mobile: '',
-    email: '',
-    postalCode: '',
-    country: '',
-    city: '',
-    street: '',
-    // fullAddress: '121/23, lorem epsilum'
-  })
+  const [userData, setUserData] = useState<any>(null);
+      console.log("userData", userData)
+      const [formData, setFormData] = useState({
+        name: '',
+        gender: 'Male',
+        workPassStatus: 'Verified',
+        dob: "01/01/2002",
+        status: '',
+        mobile: '',
+        email: '',
+        postalCode: '',
+        country: '',
+        city: '',
+        street: '',
+        town: '', // add this line
+      });
+      
 
   const [activeTab, setActiveTab] = useState("jobHistory");
 
@@ -93,14 +96,14 @@ export default function EditCandidateProfile() {
   ];
 
   const personalDetails: PersonalDetails = {
-    EWalletAmount: "$ 2,450",
-    Race: "Korean",
-    NRIC: "XXXXXX4575",
-    PostalCode: "245621",
-    FoodHygineCert: "11212225",
-    Photo: "111225225",
-    Nationality: "Singapore",
-  };
+    EWalletAmount: userData?.candidateProfile?.personalDetails?.eWalletAmount || "N/A",
+    Race: userData?.candidateProfile?.personalDetails?.race || "N/A",
+    NRIC: userData?.candidateProfile?.personalDetails?.nric || "N/A",
+    PostalCode: userData?.candidateProfile?.personalDetails?.postalCode || "N/A",
+    FoodHygineCert: userData?.candidateProfile?.personalDetails?.foodHygieneCert || "N/A",
+    Photo: userData?.candidateProfile?.personalDetails?.photo || "N/A",
+    Nationality: userData?.candidateProfile?.personalDetails?.nationality || "N/A",
+  };  
 
   const activeJobs: ActiveJobs = {
     job: "Tray Collecter",
@@ -147,6 +150,34 @@ export default function EditCandidateProfile() {
       [name]: value, 
     }));
   };
+
+  useEffect(() => {
+    axiosInstance.get(`/admin/candidates/${id}`)
+      .then(response => {
+        const { candidateProfile } = response.data;
+        setUserData(response.data);
+  
+        setFormData({
+          name: candidateProfile.fullName || '',
+          gender: candidateProfile.gender || 'Male',
+          workPassStatus: candidateProfile.employmentStatus || '',
+          dob: candidateProfile.dob || '',
+          status: candidateProfile.employmentStatus || '',
+          mobile: candidateProfile.personalDetails?.contactNumber || '',
+          email: candidateProfile.email || '',
+          postalCode: candidateProfile.personalDetails?.postalCode || '',
+          country: candidateProfile.personalDetails?.nationality || '',
+          city: candidateProfile.personalDetails?.city || '',
+          street: candidateProfile.personalDetails?.street || '',
+          // town is not included in your formData, add it if needed
+          town: candidateProfile.personalDetails?.town || '',
+        });
+      })
+      .catch(error => {
+        console.error("Error fetching employee:", error);
+      });
+  }, []);
+  
   
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -207,6 +238,14 @@ export default function EditCandidateProfile() {
         return null;
     }
   };
+
+  if (!userData) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p>Loading candidate profile...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen pb-20">
@@ -279,11 +318,11 @@ export default function EditCandidateProfile() {
               <div className="flex flex-col items-start gap-1">
                 <div className="flex items-center">
                   <h1 className=" text-[24px] leading-[30px] font-medium">
-                    Ethan Carter <i className="text-xs">(Male)</i>
+                  {userData?.candidateProfile?.fullName || "N/A"}{" "}
                   </h1>
                   <span className="text-[#049609] bg-[#CEFFCF] rounded-full px-3 py-0.5 mt-2 text-[16px] leading-[24px] font-medium ml-2">
                     {" "}
-                    Verified
+                    {userData?.candidateProfile?.employmentStatus}
                   </span>
                 </div>
 
@@ -291,7 +330,7 @@ export default function EditCandidateProfile() {
                   Age:{" "}
                   <span className="text-[#000] text-[16px] leading-[24px] font-medium ml-2">
                     {" "}
-                    35
+                    {userData?.candidateProfile?.personalDetails.age}
                   </span>
                 </p>
 
@@ -299,7 +338,7 @@ export default function EditCandidateProfile() {
                   DOB:{" "}
                   <span className="text-[#000] text-[16px] leading-[24px] font-medium ml-2">
                     {" "}
-                    05/10/1888
+                    {userData?.candidateProfile?.personalDetails.dob}
                   </span>
                 </p>
               </div>
@@ -308,7 +347,7 @@ export default function EditCandidateProfile() {
                   <p className="text-[16px] leading-[24px] font-medium text-[#4c4c4c]">
                     Registered at:{" "}
                     <span className="text-[#000000] text-[16px] leading-[24px] font-medium ml-2">
-                      21/09/2008, 09:30AM
+                    {userData?.candidateProfile?.registeredAt}
                     </span>
                   </p>
                 </p>
@@ -316,18 +355,19 @@ export default function EditCandidateProfile() {
                   <p className="text-[16px] leading-[24px] font-medium text-[#4c4c4c]">
                     Contact Number:{" "}
                     <span className="text-[#000000] text-[16px] leading-[24px] font-medium ml-2">
-                      +658847349
+                    {userData?.candidateProfile?.personalDetails.contactNumber}
+
                     </span>
                   </p>
                 </p>
-                <p className="text-sm text-[#4C4C4C] font-medium mt-2">
+                {/* <p className="text-sm text-[#4C4C4C] font-medium mt-2">
                   <p className="text-[16px] leading-[24px] font-medium text-[#4c4c4c]">
                     Email Address:{" "}
                     <span className="text-[#000000] text-[16px] leading-[24px] font-medium ml-2">
-                      ethancarter@gmail.com
+                    {userData.candidateProfile?.personalDetails.contactNumber}
                     </span>
                   </p>
-                </p>
+                </p> */}
               </div>
             </div>
 
@@ -371,7 +411,7 @@ export default function EditCandidateProfile() {
 
           {/* Stats Section */}
           <div className="bg-white rounded-3xl py-8 px-12 shadow-sm border border-gray-200 z-10">
-            <div className="flex gap-6 py-8 border-b">
+            {/* <div className="flex gap-6 py-8 border-b">
               {tabs.map((tab) => {
                 const Icon = tab.icon; // Get the icon for the current tab
                 return (
@@ -393,9 +433,31 @@ export default function EditCandidateProfile() {
                   </button>
                 );
               })}
-            </div>
+            </div> */}
 
-            {activeTab === "jobHistory" ? <JobHistory /> : <WorkHistory />}
+            {/* {activeTab === "jobHistory" ? <JobHistory /> : <WorkHistory />} */}
+            {/* {activeTab === "jobHistory" ? <JobHistory /> :  <JobHistory />  } */}
+
+
+  {/* Title Section (Optional) */}
+  <h2 className="text-2xl font-semibold mb-6">Job Overview</h2>
+
+  <div className="mb-12">
+
+
+    <h3 className="text-xl font-medium mb-4">Job History</h3>
+    <JobHistory jobHistory={userData?.workHistory || {}} />
+  </div>
+
+  {/* JobHistory Section */}
+  <div className="">
+  <h3 className="text-xl font-medium mb-4 ">Work History</h3>
+  <WorkHistory workHistory={userData?.jobHistory || {}} />
+  </div>
+
+  {/* WorkHistory Section */}
+ 
+
           </div>
 
           {/* form */}
@@ -564,6 +626,19 @@ export default function EditCandidateProfile() {
                   <PencilIcon className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 </div>
               </div>
+
+              {/* <div>
+                <label className="block text-sm mb-2"></label>
+                <select className="w-full px-3 py-2 border rounded-lg appearance-none bg-white"
+                name="status"
+                value={formData.status}
+                onChange={handleChange}>
+                  <option>Singaporean/Permanent Resident</option>
+                  <option>Long Term Visit Pass Holder</option>
+                  <option>Student Pass</option>
+                  <option>No Valid Work Pass</option>
+                </select>
+              </div> */}
 
               {/* Full Address */}
               {/* <div className="">

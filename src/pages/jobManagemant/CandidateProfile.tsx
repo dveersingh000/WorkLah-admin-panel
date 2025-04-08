@@ -62,21 +62,14 @@ interface ActiveJobs {
 
 export default function ProfileDashboard() {
   const { id } = useParams()
-  const [activeTab, setActiveTab] = useState("jobHistory");
   const [userData, setUserData] = useState<any>(null);
-  // console.log("userData", userData)
+  console.log("userData", userData)
 
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
   const navigate = useNavigate()
-
-  const tabs = [
-    { id: "jobHistory", label: "Job History", icon: History },
-    { id: "workHistory", label: "Work History", icon: CalendarClock },
-    { id: "feedback", label: "Feedback", icon: MessagesSquare },
-  ];
 
   const personalDetails: PersonalDetails = {
     candidateId: userData?.candidateProfile?.candidateId || "N/A",
@@ -89,6 +82,7 @@ export default function ProfileDashboard() {
     race: userData?.candidateProfile?.personalDetails?.race || "N/A",
     foodHygineCert: userData?.candidateProfile?.personalDetails?.foodHygieneCert || "N/A",
     icNumber: userData?.candidateProfile?.personalDetails?.icNumber || "N/A",
+    image: userData?.candidateProfile?.personalDetails?.icNumber || "N/A",
   };
 
 
@@ -117,6 +111,7 @@ export default function ProfileDashboard() {
     race: "Race",
     foodHygineCert: "Food & Hygiene cert.",
     icNumber: "IC number",
+    image: "Image",
   };
 
   const customLablesActiveJobs: Record<string, string> = {
@@ -166,6 +161,8 @@ export default function ProfileDashboard() {
         return <FaHandHoldingWater className="w-6 h-6 text-[#048BE1] " />;
       case "icNumber":
         return <TbUserHexagon className="w-6 h-6 text-[#048BE1]" />;
+        case "image":
+        return <TbUserHexagon className="w-6 h-6 text-[#048BE1]" />;
       default:
         return null;
     }
@@ -199,7 +196,7 @@ export default function ProfileDashboard() {
               <ul className="py-2">
                 {/* Edit Candidate */}
                 <li>
-                  <Link to="/edit-candidate-profile">
+                  <Link to={`/edit-candidate-profile/${id}`}>
                     <button className="flex items-center w-full px-4 py-2 text-sm text-[#000000] hover:bg-gray-100">
                       <FiEdit3 className="w-4 h-4 mr-2 text-gray-500" />
                       Edit Candidate
@@ -298,7 +295,7 @@ export default function ProfileDashboard() {
           
           {/* Stats Section */}
           <div className="bg-white rounded-3xl py-8 px-12 shadow-sm border border-gray-200 z-10">
-            <div className="flex gap-6 py-8 border-b">
+            {/* <div className="flex gap-6 py-8 border-b">
               {tabs.map((tab) => {
                 const Icon = tab.icon; // Get the icon for the current tab
                 return (
@@ -319,15 +316,34 @@ export default function ProfileDashboard() {
                   </button>
                 );
               })}
-            </div>
+            </div> */}
 
-            {activeTab === "jobHistory" ? (
+            {/* <JobHistory jobHistory={userData?.workHistory || {}} />
+            <WorkHistory workHistory={userData?.jobHistory || []} /> */}
+
+              <h2 className="text-2xl font-semibold mb-6">Job Overview</h2>
+            
+              <div className="mb-12">
+                <h3 className="text-xl font-medium mb-4 ">Work History</h3>
+                {/* <WorkHistory /> */}
+                <JobHistory jobHistory={userData?.workHistory || {}} />
+              </div>
+            
+              {/* JobHistory Section */}
+              <div className="">
+                <h3 className="text-xl font-medium mb-4">Job History</h3>
+                <WorkHistory workHistory={userData?.jobHistory || []} />
+              </div>
+
+
+
+            {/* {activeTab === "jobHistory" ? (
               <WorkHistory workHistory={userData?.jobHistory || []} />
             ) : activeTab === "workHistory" ? (
               <JobHistory jobHistory={userData?.workHistory || {}} />
             ) : (
               <div></div>
-            )}
+            )} */}
 
           </div>
           <div className=" bg-white rounded-3xl p-6 shadow-sm border border-gray-200 px-12">

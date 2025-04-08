@@ -55,6 +55,7 @@ export const AuthProvider: React.FC<PropsWithChildren<{}>> = ({ children }) => {
       const response = await axiosInstance.post('/user/login', { email, password });
       setUser(response.data.user);
       const { token} = response.data; // Assuming API returns token and user data
+      // Cookies.set('authToken', token); // Save token in cookies for 7 days
       Cookies.set('authToken', token, { expires: 7 }); // Save token in cookies for 7 days
       setIsAuthenticated(true);
       return true;

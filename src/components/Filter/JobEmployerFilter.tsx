@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { axiosInstance } from '../../lib/authInstances'
 
 interface Outlet {
   id: string
@@ -18,70 +19,52 @@ interface Employer {
   isChecked: boolean
 }
 
-export default function JobEmployerFilter() {
+export default function JobEmployerFilter({ onClose, onSelect }: JobEmployerFilterProps) {
+
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedLetter, setSelectedLetter] = useState<string | null>(null)
-  const [employers, setEmployers] = useState<Employer[]>([
-    {
-      id: '1',
-      name: 'RIGHT SERVICE PTE. LTD.',
-      isChecked: false,
-      outlets: [
-        {
-          id: 'mc1',
-          name: "McDonald's",
-          location: '(11/54, Anchorvale Link, Backer street)',
-          logo: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-FfsUXakqeRaKO3P5zY5lU8N5kspL6y.png',
-          isChecked: false
-        },
-        {
-          id: 'mc2',
-          name: "McDonald's",
-          location: '(113/54, Anchorvale Link, Backer street)',
-          logo: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-FfsUXakqeRaKO3P5zY5lU8N5kspL6y.png',
-          isChecked: false
-        },
-        {
-          id: 'kfc1',
-          name: 'KFC',
-          location: '(113/54, Anchorvale Link, Backer street)',
-          logo: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-FfsUXakqeRaKO3P5zY5lU8N5kspL6y.png',
-          isChecked: false
-        }
-      ],
-      isExpanded: false
-    },
-    {
-      id: '2',
-      name: 'RIGHT SERVICE PTE. LTD.',
-      isChecked: false,
-      isExpanded: false
-    },
-    {
-      id: '3',
-      name: 'RIGHT SERVICE PTE. LTD.',
-      isChecked: false,
-      isExpanded: false
-    },
-    {
-      id: '4',
-      name: 'RIGHT SERVICE PTE. LTD.',
-      isChecked: false,
-      isExpanded: false
-    }
-  ])
+  const [employers, setEmployers] = useState<Employer[]>([])
 
   const alphabet = Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ')
 
+  // Fetch employers from API
+  useEffect(() => {
+    const fetchEmployers = async () => {
+      try {
+        const response = await axiosInstance.get('/employers') // Adjust if needed
+        const rawEmployers = response.data.employers
+
+        const formattedEmployers: Employer[] = rawEmployers.map((emp: any) => ({
+          id: emp._id,
+          name: emp.companyLegalName,
+          isChecked: false,
+          isExpanded: false,
+          outlets: (emp.outlets || []).map((outlet: any) => ({
+            id: outlet._id,
+            name: outlet.outletName,
+            location: outlet.outletAddress,
+            logo: outlet.outletImage,
+            isChecked: false
+          }))
+        }))
+
+        setEmployers(formattedEmployers)
+      } catch (error) {
+        console.error('Error fetching employers:', error)
+      }
+    }
+
+    fetchEmployers()
+  }, [])
+
   const toggleEmployer = (employerId: string) => {
-    setEmployers(employers.map(emp => 
-      emp.id === employerId 
+    setEmployers(employers.map(emp =>
+      emp.id === employerId
         ? { ...emp, isExpanded: !emp.isExpanded }
         : emp
     ))
   }
 
-  // Handle parent checkbox change
   const handleEmployerCheck = (employerId: string, checked: boolean) => {
     setEmployers(employers.map(emp => {
       if (emp.id === employerId) {
@@ -98,28 +81,26 @@ export default function JobEmployerFilter() {
     }))
   }
 
-  // Handle child checkbox change
   const handleOutletCheck = (employerId: string, outletId: string, checked: boolean) => {
     setEmployers(employers.map(emp => {
       if (emp.id === employerId) {
-        const updatedOutlets = emp.outlets?.map(outlet => 
+        const updatedOutlets = emp.outlets?.map(outlet =>
           outlet.id === outletId ? { ...outlet, isChecked: checked } : outlet
         )
-        const allOutletsChecked = updatedOutlets?.every(outlet => outlet.isChecked)
+        const allChecked = updatedOutlets?.every(o => o.isChecked)
         return {
           ...emp,
           outlets: updatedOutlets,
-          isChecked: allOutletsChecked || false
+          isChecked: allChecked || false
         }
       }
       return emp
     }))
   }
 
-  // Filter employers based on search term and selected letter
   const filteredEmployers = employers.filter(employer => {
     const matchesSearch = employer.name.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesLetter = selectedLetter 
+    const matchesLetter = selectedLetter
       ? employer.name.charAt(0).toUpperCase() === selectedLetter
       : true
     return matchesSearch && matchesLetter
@@ -130,9 +111,13 @@ export default function JobEmployerFilter() {
       <div className="bg-white w-full max-w-md rounded-lg shadow-lg">
         <div className="p-4 border-b flex items-center justify-between">
           <h2 className="text-lg font-semibold">Employers</h2>
-          <button className="text-gray-500 hover:text-gray-700">
-            ×
-          </button>
+          <button
+  className="text-gray-500 hover:text-gray-700"
+  onClick={onClose}
+>
+  ×
+</button>
+
         </div>
 
         <div className="p-4">
@@ -163,22 +148,20 @@ export default function JobEmployerFilter() {
             <div className="pr-8">
               {filteredEmployers.map((employer) => (
                 <div key={employer.id} className="mb-2">
-                  <div 
-                    className="flex items-center gap-2 py-2"
-                  >
-                    <input 
-                      type="checkbox" 
+                  <div className="flex items-center gap-2 py-2">
+                    <input
+                      type="checkbox"
                       className="h-4 w-4"
                       checked={employer.isChecked}
                       onChange={(e) => handleEmployerCheck(employer.id, e.target.checked)}
                     />
-                    <span 
+                    <span
                       className="text-sm cursor-pointer text-black"
                       onClick={() => toggleEmployer(employer.id)}
                     >
                       {employer.name}
                     </span>
-                    {employer.outlets && (
+                    {employer.outlets && employer.outlets.length > 0 && (
                       <svg
                         className={`ml-auto h-4 w-4 transform transition-transform cursor-pointer ${
                           employer.isExpanded ? 'rotate-180' : ''
@@ -197,17 +180,19 @@ export default function JobEmployerFilter() {
                       </svg>
                     )}
                   </div>
-                  
+
                   {employer.outlets && employer.isExpanded && (
                     <div className="ml-6 space-y-2">
                       <div className="text-sm font-medium mb-1 text-black">Outlets</div>
                       {employer.outlets.map((outlet) => (
                         <div key={outlet.id} className="flex items-start gap-2">
-                          <input 
-                            type="checkbox" 
+                          <input
+                            type="checkbox"
                             className="h-4 w-4 mt-1"
                             checked={outlet.isChecked}
-                            onChange={(e) => handleOutletCheck(employer.id, outlet.id, e.target.checked)}
+                            onChange={(e) =>
+                              handleOutletCheck(employer.id, outlet.id, e.target.checked)
+                            }
                           />
                           <div>
                             <div className="text-sm font-medium text-black">
@@ -231,8 +216,8 @@ export default function JobEmployerFilter() {
                 <button
                   key={letter}
                   className={`w-6 h-6 flex items-center justify-center hover:text-gray-600 ${
-                    selectedLetter === letter 
-                      ? 'text-blue-600 font-bold' 
+                    selectedLetter === letter
+                      ? 'text-blue-600 font-bold'
                       : 'text-gray-400'
                   }`}
                   onClick={() => {
@@ -247,6 +232,25 @@ export default function JobEmployerFilter() {
                 </button>
               ))}
             </div>
+            <div className="mt-4 flex justify-end">
+</div>
+
+  <button
+    className="bg-blue-600 text-white px-4 py-2 rounded-lg ms-16 hover:bg-blue-700"
+    onClick={() => {
+      const selected = employers
+        .filter(emp => emp.isChecked || emp.outlets?.some(o => o.isChecked))
+        .map(emp => ({
+          ...emp,
+          outlets: emp.outlets?.filter(o => o.isChecked)
+        }))
+
+      onSelect(selected)
+      onClose()
+    }}
+  >
+    Submit
+  </button>
           </div>
         </div>
       </div>
