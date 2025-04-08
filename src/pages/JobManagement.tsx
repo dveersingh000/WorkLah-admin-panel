@@ -206,7 +206,7 @@ const JobManagement = () => {
     }
     if (action === "Cancel Job") {
       axiosInstance
-        .delete(`/admin/jobs/${id}`)
+        .put(`/admin/jobs/cancel/${id}`)
         .then((response) => {
           console.log("Job deleted");
 

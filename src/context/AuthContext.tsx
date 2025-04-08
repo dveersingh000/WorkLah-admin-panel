@@ -31,23 +31,23 @@ export const AuthProvider: React.FC<PropsWithChildren<{}>> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // useEffect(() => {
-  //   const checkAuth = async () => {
-  //     try {
-  //       const response = await axiosInstance.get('/user/authenticated');
-  //       setUser(response.data);
-  //       setIsAuthenticated(true);
-  //     } catch (error) {
-  //       console.error('Error fetching user data:', error);
-  //       setUser(null);
-  //       setIsAuthenticated(false);
-  //     } finally {
-  //       setIsLoading(false);
-  //     }
-  //   };
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await axiosInstance.get('/user/authenticated');
+        setUser(response.data);
+        setIsAuthenticated(true);
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+        setUser(null);
+        setIsAuthenticated(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  //   checkAuth();
-  // }, []);
+    checkAuth();
+  }, []);
 
   const login = async (email: string, password: string) => {
     try {
@@ -87,9 +87,9 @@ export const AuthProvider: React.FC<PropsWithChildren<{}>> = ({ children }) => {
     }
   };
 
-  // if (isLoading) {
-  //   return <div>Loading...</div>;
-  // }
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <AuthContext.Provider value={{ isAuthenticated, user, login, signup, logout }}>
