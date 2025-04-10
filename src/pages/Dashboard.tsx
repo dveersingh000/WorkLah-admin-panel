@@ -64,7 +64,7 @@ const Dashboard = () => {
 
   const cards = [
     {
-      title: "Total Job Posted",
+      title: "No. of Active Job now",
       value: dashboardData.totalJobs,
       chartData: [0, 0, 0, 0, 0, 0, 0, 0],
       chartColor: ["#797979", "#FFFFFF"],
@@ -78,7 +78,7 @@ const Dashboard = () => {
       icon: "/assets/icons/group2.svg",
     },
     {
-      title: "Vacancy",
+      title: "Current Headcount Fulfilment",
       value: dashboardData.vacancies,
       chartData: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       chartColor: ["#4D5578", "#FFFFFF"],
@@ -92,14 +92,14 @@ const Dashboard = () => {
       icon: "/assets/icons/group4.svg",
     },
     {
-      title: "Pending Payment Transfers",
+      title: "Pending Wages Transfer",
       value: dashboardData.pendingPayments,
       chartData: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       chartColor: ["#FFDD1C", "#FFFFFF"],
       icon: "/assets/icons/group5.svg",
     },
     {
-      title: "Total Amount Paid",
+      title: "Outstanding Payment",
       value: dashboardData.totalAmountPaid,
       chartData: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       chartColor: ["#178628", "#FFFFFF"],

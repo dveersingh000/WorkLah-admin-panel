@@ -31,7 +31,7 @@ const DashboardCard: React.FC<DashboardCardProps> = ({
   const navigate = useNavigate()
 
   const handleNaviagtion = (title:string) =>{
-      if(title === "Total Job Posted"){
+      if(title === "No. of Active Job now"){
           navigate('/jobs/job-management')
       } else if (title === "Activated Hustle Heroes"){
         navigate('/hustle-heroes')

@@ -42,8 +42,8 @@ export default function EmployeePayments() {
         // Determine the API endpoint based on the active tab
         const url =
           activeTab === "payments"
-            ? "http://localhost:3000/api/payments/"
-            : "http://localhost:3000/api/withdrawals/";
+            ? "https://worklah.onrender.com/api/payments/"
+            : "https://worklah.onrender.com/api/withdrawals/";
 
         // Fetch data from the determined endpoint
         const response = await axios.get(url);

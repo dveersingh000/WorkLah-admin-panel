@@ -59,7 +59,7 @@ export default function ModifyJob() {
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const Images = "http://localhost:3000";
+  const Images = "https://worklah.onrender.com";
   const [shifts, setShifts] = useState<Shift[]>([
     {
       id: 1,
@@ -609,7 +609,7 @@ export default function ModifyJob() {
                     src={
                       outlets.find((option) => option.value === selectedOutlet)?.image
                         ? `${outlets.find((option) => option.value === selectedOutlet)?.image}`
-                        : "http://localhost:3000/static/outletImage.png"
+                        : "https://worklah.onrender.com/static/outletImage.png"
                     }
                     alt="Outlet logo"
                     width={24}

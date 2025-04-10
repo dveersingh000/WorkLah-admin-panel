@@ -60,7 +60,7 @@ export default function NewJob() {
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const Images = "http://localhost:3000";
+  const Images = "https://worklah.onrender.com";
   const [shifts, setShifts] = useState<Shift[]>([
     {
       id: 1,
@@ -538,7 +538,7 @@ export default function NewJob() {
                     src={
                       outlets.find((option) => option.value === selectedOutlet)?.image
                         ? `${outlets.find((option) => option.value === selectedOutlet)?.image}`
-                        : "http://localhost:3000/static/outletImage.png"
+                        : "https://worklah.onrender.com/static/outletImage.png"
                     }
                     alt="Outlet logo"
                     width={24}
@@ -822,7 +822,7 @@ export default function NewJob() {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Vacancy</label>
+                    <label className="text-sm font-medium">Headcount Needed</label>
                     <div className="flex justify-between items-center gap-2 p-3 border rounded-xl bg-white h-12">
                       <button
                         className=" bg-blue-50 rounded-lg px-2 py-1 focus:outline-none text-sm"
@@ -865,7 +865,7 @@ export default function NewJob() {
 
                   <div className="space-y-2">
                     <label className="text-sm font-medium">
-                      Standby vacancy
+                    Standby Headcount
                     </label>
                     <div className="flex justify-between items-center gap-2 p-3 border rounded-xl bg-white h-12">
                       <button
@@ -1002,7 +1002,7 @@ export default function NewJob() {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Pay rate/Hr</label>
+                    <label className="text-sm font-medium">Pay/hr</label>
                     <div className="flex items-center gap-2 p-3 border rounded-xl bg-white h-12">
                       <span className="text-gray-500">$</span>
                       <input
@@ -1023,7 +1023,7 @@ export default function NewJob() {
 
                   <div className="space-y-2">
                     <label className="text-sm font-medium">
-                      Total Wage{" "}
+                    Total Wages{" "}
                       <span className="text-xs text-gray-400">
                         (Rate x Duration = Total wage)
                       </span>
@@ -1064,7 +1064,7 @@ export default function NewJob() {
           <div className="space-y-4">
             <div>
               <label className="block text-sm mb-1">
-                Job Scope Description
+                Job Description
               </label>
               <div className="border rounded-lg p-2">
                 <div className="flex gap-2 mb-2">

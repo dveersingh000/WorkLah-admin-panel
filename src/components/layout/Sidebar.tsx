@@ -33,7 +33,12 @@ const Sidebar: React.FC = () => {
       {/* Logo Section */}
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center justify-center gap-2">
-          <img className="w-20 h-12" src="/assets/logo.png" alt="logo" />
+          <img
+            src="/assets/logo.png"
+            alt="logo"
+            className="h-14 object-contain"
+          />
+
         </div>
       </div>
 
@@ -45,19 +50,17 @@ const Sidebar: React.FC = () => {
               <NavLink
                 to={item.path}
                 onClick={() => setActivePath(item.path)} // Update active state on click
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                  activePath === item.path
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${activePath === item.path
                     ? "text-blue-600 font-semibold"
                     : "text-gray-600 hover:text-gray-800"
-                }`}
+                  }`}
               >
                 {/* Icon Background */}
                 <div
-                  className={`flex items-center justify-center w-10 h-10 rounded-full p-2  ${
-                    activePath === item.path
+                  className={`flex items-center justify-center w-10 h-10 rounded-full p-2  ${activePath === item.path
                       ? "bg-blue-600 text-gray-600 "
                       : "bg-gray-200 text-gray-600"
-                  }`}
+                    }`}
                 >
                   <img src={item.icon} alt={item.text} className="w-8 h-8 fill-gray-500" />
                 </div>
