@@ -147,7 +147,7 @@ useEffect(() => {
               <td className="px-12 py-4  truncate text-center border">
                 <div className="flex items-center gap-2">
                   <img
-                    src={employee.avatarUrl}
+                    src={employee.profilePicture}
                     alt=""
                     className="h-8 w-8 rounded-full bg-gray-200"
                   />

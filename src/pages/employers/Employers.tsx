@@ -313,7 +313,7 @@ const EmployerTable: React.FC = () => {
           totalSteps={3}
         />
         {/* Pagination */}
-        <div className="flex justify-center items-center gap-2 mt-20">
+        {/* <div className="flex justify-center items-center gap-2 mt-20">
           <button className="px-3 py-1 border border-gray-300 rounded-md bg-white hover:bg-gray-50">
             ←
           </button>
@@ -347,14 +347,15 @@ const EmployerTable: React.FC = () => {
           <button className="px-3 py-1 border border-gray-300 rounded-md bg-white hover:bg-gray-50">
             →
           </button>
-        </div>
-      </div>
+        </div> */}
+      
       <div className="flex flex-col items-center justify-center bg-gray-50">
         <Pagination
           totalPages={totalPages} // Adjust the total pages
           currentPage={currentPage}
           onPageChange={handlePageChange}
         />
+      </div>
       </div>
     </div>
   );
