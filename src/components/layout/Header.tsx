@@ -54,7 +54,7 @@ if (res.data?.imageUrl) {
 
   return (
     <header className="h-16 bg-white flex items-center justify-between px-6">
-      <div className="flex items-center flex-1">
+      {/* <div className="flex items-center flex-1">
         <div className="flex items-center gap-4 w-96 px-6 py-4 rounded-full border border-[#a3a3a3]">
           <Search className="w-7 h-7" color="#4c4c4c" />
           <input
@@ -63,7 +63,8 @@ if (res.data?.imageUrl) {
             className="w-full focus:outline-none text-[16px] leading-[20px] text-[#4c4c4c]"
           />
         </div>
-      </div>
+      </div> */}
+      <div></div>
 
       <div className="flex items-center gap-8 relative">
         <Bell

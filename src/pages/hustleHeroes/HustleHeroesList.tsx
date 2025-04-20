@@ -48,6 +48,42 @@ useEffect(() => {
     }
   }
 
+  const formatDob = (dob) => {
+    const date = new Date(dob);
+    const day = date.getDate();
+    const month = date.toLocaleString("default", { month: "long" });
+    const year = date.getFullYear();
+  
+    // Get ordinal suffix for the day
+    const getOrdinal = (n) => {
+      if (n > 3 && n < 21) return "th";
+      switch (n % 10) {
+        case 1: return "st";
+        case 2: return "nd";
+        case 3: return "rd";
+        default: return "th";
+      }
+    };
+  
+    return `${day}${getOrdinal(day)} ${month} ${year}`;
+  };
+
+  const calculateAge = (dob) => {
+    const birthDate = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+  
+    // Adjust if birthday hasn't occurred yet this year
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+  
+    return `${age} yrs`;
+  };
+  
+  
+
   const toggleSelectRow = (id: string) => {
     if (selectedRows.includes(id)) {
       setSelectedRows(selectedRows.filter((rowId) => rowId !== id))
@@ -124,10 +160,11 @@ useEffect(() => {
             <th className="p-4 truncate text-center border">Mobile</th>
             <th className="p-4 truncate text-center border">IC Number</th>
             <th className="p-4 truncate text-center border">DOB</th>
+            <th className="p-4 truncate text-center border">Age</th>
             <th className="p-4 truncate text-center border">Registration Date</th>
-            <th className="p-4 truncate text-center border">Turn Up Rate</th>
-            <th className="p-4 truncate text-center border">Working Hours</th>
-            <th className="p-4 truncate text-center border">Avg. Attend Rate</th>
+            {/* <th className="p-4 truncate text-center border">Turn Up Rate</th> */}
+            {/* <th className="p-4 truncate text-center border">Working Hours</th> */}
+            {/* <th className="p-4 truncate text-center border">Avg. Attend Rate</th> */}
             <th className="p-4 truncate text-center border">Work Pass Status</th>
             <th className="p-4 truncate text-center border">Action</th>
           </tr>
@@ -154,14 +191,24 @@ useEffect(() => {
                   <span>{employee.fullName}</span>
                 </div>
               </td>
-              <td className="p-4 truncate text-center border">{employee.gender}</td>
+              <td className="p-4 truncate text-center border">
+                {employee.gender === "Male" ? "M" : employee.gender === "Female" ? "F" : "N/A"}
+              </td>
               <td className="p-4 truncate text-center border">{employee.mobile}</td>
               <td className="p-4 truncate text-center border">{employee.nric}</td>
-              <td className="p-4 truncate text-center border">{employee.dob}</td>
+              <td className="p-4 truncate text-center border">
+              {employee.dob ? formatDob(employee.dob) : "N/A"}
+            </td>
+
+            <td className="p-4 truncate text-center border">
+            {employee.dob ? calculateAge(employee.dob) : "N/A"}
+          </td>
+
+
               <td className="p-4 truncate text-center border">{employee.registrationDate}</td>
-              <td className="p-4 truncate text-center border">{employee.turnUpRate}</td>
-              <td className="p-4 truncate text-center border">{employee.workingHours}</td>
-              <td className="p-4 truncate text-center border">{employee.avgAttendRate}</td>
+              {/* <td className="p-4 truncate text-center border">{employee.turnUpRate}</td> */}
+              {/* <td className="p-4 truncate text-center border">{employee.workingHours}</td> */}
+              {/* <td className="p-4 truncate text-center border">{employee.avgAttendRate}</td> */}
               <td className="p-4 truncate text-center border">
                 <div className="flex items-center gap-2">
                   <span

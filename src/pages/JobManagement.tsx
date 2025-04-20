@@ -70,7 +70,7 @@ const JobManagement = () => {
   const [isPopupOpen, setIsPopupOpen] = useState<number | null>(null);
   const [jobsData, setJobsData] = useState([]);
   const [totalData, setTotalData] = useState([]);
-  console.log("jobsData", jobsData);
+  console.log("jobsData", totalData);
   const [startDate, setStartDate] = useState(new Date("2024-01-01"));
   const [endDate, setEndDate] = useState(new Date("2024-12-31"));
   const [isLimitPopupOpen, setIsLimitPopupOpen] = useState(false);
@@ -86,7 +86,7 @@ const JobManagement = () => {
 
 
   const options = [
-    { label: "Most Recent Required", value: "mostRecent" },
+    // { label: "Most Recent Required", value: "mostRecent" },
     { label: "Ascending", value: "asc" },
     { label: "Descending", value: "desc" },
   ];
@@ -396,18 +396,18 @@ const JobManagement = () => {
         >
           <div className="rounded-lg flex flex-col items-center">
             <h2 className="text-[48px] leading-[60px] font-medium text-[#049609]">
-              {totalData.totalActiveJobs}
+            {totalData.totalActiveJobs + totalData.totalUpcomingJobs}
             </h2>
             <p className="text-[20px] leading-[25px] font-medium text-[#4c4c4c]">
-              Active Jobs
+              Active & Upcoming Jobs
             </p>
           </div>
           <div className="rounded-lg flex flex-col items-center">
             <h2 className="text-[48px] leading-[60px] font-medium text-[#e39127]">
-              {totalData.totalUpcomingJobs}
+              {totalData.totalCompletedJobs}
             </h2>
             <p className="text-[20px] leading-[25px] font-medium text-[#4c4c4c]">
-              Upcoming Jobs
+            Completed Jobs
             </p>
           </div>
           <div className="rounded-lg flex flex-col items-center">
@@ -423,13 +423,13 @@ const JobManagement = () => {
               {totalData.averageAttendanceRate}
             </h2>
             <p className="text-[20px] leading-[25px] font-medium text-[#4c4c4c]">
-              Average Attendance Rate
+            Current Fulfilment Rate
             </p>
           </div>
         </div>
 
         {/* Job Types Filter */}
-        <div className="flex gap-6 mb-6 text-sm bg-[#f3f3f3] justify-between items-center rounded-2xl py-4 px-8">
+        {/* <div className="flex gap-6 mb-6 text-sm bg-[#f3f3f3] justify-between items-center rounded-2xl py-4 px-8">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-4">
               <p className="w-[6px] h-8  bg-green-500 "></p>
@@ -457,7 +457,7 @@ const JobManagement = () => {
             </div>
             <Info className="w- h-8 cursor-pointer" />
           </div>
-        </div>
+        </div> */}
 
         {/*Filter */}
         <div className="flex items-center justify-between py-2">
@@ -536,7 +536,7 @@ const JobManagement = () => {
                   Job Roles
                 </th>
                 <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
-                  Date
+                  Job Date
                 </th>
                 <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
                   Number of shifts
