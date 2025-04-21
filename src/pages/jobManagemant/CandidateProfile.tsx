@@ -45,6 +45,8 @@ interface PersonalDetails {
   paynowNum: string;
   foodHygineCert: string;
   icNumber: string;
+  nricFront: string;
+  nricBack: string;
 }
 
 interface ActiveJobs {
@@ -61,34 +63,40 @@ interface ActiveJobs {
 }
 
 export default function ProfileDashboard() {
-  const { id } = useParams()
+  const { id } = useParams();
   const [userData, setUserData] = useState<any>(null);
-  console.log("userData", userData)
+  console.log("userData", userData);
 
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const personalDetails: PersonalDetails = {
     candidateId: userData?.candidateProfile?.candidateId || "N/A",
-    contactNumber: userData?.candidateProfile?.personalDetails?.contactNumber || "N/A",
+    contactNumber:
+      userData?.candidateProfile?.personalDetails?.contactNumber || "N/A",
     dob: userData?.candidateProfile?.personalDetails?.dob || "N/A",
     gender: userData?.candidateProfile?.personalDetails?.gender || "N/A",
     nric: userData?.candidateProfile?.personalDetails?.nric || "N/A",
-    nationality: userData?.candidateProfile?.personalDetails?.nationality || "N/A",
-    paynowNum: userData?.candidateProfile?.personalDetails?.paynowNumber || "N/A",
+    nationality:
+      userData?.candidateProfile?.personalDetails?.nationality || "N/A",
+    paynowNum:
+      userData?.candidateProfile?.personalDetails?.paynowNumber || "N/A",
     race: userData?.candidateProfile?.personalDetails?.race || "N/A",
-    foodHygineCert: userData?.candidateProfile?.personalDetails?.foodHygieneCert || "N/A",
+    foodHygineCert:
+      userData?.candidateProfile?.personalDetails?.foodHygieneCert || "N/A",
     icNumber: userData?.candidateProfile?.personalDetails?.icNumber || "N/A",
-    image: userData?.candidateProfile?.personalDetails?.icNumber || "N/A",
+    nricFront: userData?.candidateProfile?.personalDetails?.nricFront || "N/A",
+    nricBack: userData?.candidateProfile?.personalDetails?.nricBack || "N/A",
   };
-
 
   const activeJobs: ActiveJobs = {
     job: userData?.activeJob?.jobName || "N/A",
-    ongoingShift: `${userData?.activeJob?.shiftStartTime || "N/A"} ---- ${userData?.activeJob?.shiftEndTime || "N/A"}`,
+    ongoingShift: `${userData?.activeJob?.shiftStartTime || "N/A"} ---- ${
+      userData?.activeJob?.shiftEndTime || "N/A"
+    }`,
     clockedIn: userData?.activeJob?.clockedIn || "N/A",
     employer: userData?.activeJob?.employer || "N/A",
     duration: userData?.activeJob?.duration || "N/A",
@@ -98,7 +106,6 @@ export default function ProfileDashboard() {
     wageGenerated: userData?.activeJob?.wageGenerated || "N/A",
     rateType: userData?.activeJob?.rateType || "N/A",
   };
-
 
   const customLabels: Record<string, string> = {
     candidateId: "Candidate ID",
@@ -111,7 +118,8 @@ export default function ProfileDashboard() {
     race: "Race",
     foodHygineCert: "Food & Hygiene cert.",
     icNumber: "IC number",
-    image: "Image",
+    nricFront: "Nric Front",
+    nricBack: "Nric Back",
   };
 
   const customLablesActiveJobs: Record<string, string> = {
@@ -129,12 +137,13 @@ export default function ProfileDashboard() {
 
   useEffect(() => {
     // Fetch employees from API
-    axiosInstance.get(`/admin/candidates/${id}`)
-      .then(response => {
+    axiosInstance
+      .get(`/admin/candidates/${id}`)
+      .then((response) => {
         // console.log("response", response.data)
         setUserData(response.data);
       })
-      .catch(error => {
+      .catch((error) => {
         console.error("Error fetching employees:", error);
       });
   }, []);
@@ -161,7 +170,9 @@ export default function ProfileDashboard() {
         return <FaHandHoldingWater className="w-6 h-6 text-[#048BE1] " />;
       case "icNumber":
         return <TbUserHexagon className="w-6 h-6 text-[#048BE1]" />;
-        case "image":
+      case "nricFront":
+        return <TbUserHexagon className="w-6 h-6 text-[#048BE1]" />;
+        case "nricBack":
         return <TbUserHexagon className="w-6 h-6 text-[#048BE1]" />;
       default:
         return null;
@@ -179,7 +190,10 @@ export default function ProfileDashboard() {
         }}
       >
         <div className="absolute top-4 left-4 right-4 flex justify-between items-center">
-          <button className="p-2 rounded-full shadow-custom bg-white" onClick={() => navigate(-1)}>
+          <button
+            className="p-2 rounded-full shadow-custom bg-white"
+            onClick={() => navigate(-1)}
+          >
             <ArrowLeft className="w-4 h-4 " color="#000000" />
           </button>
           <div className="flex gap-4">
@@ -224,7 +238,10 @@ export default function ProfileDashboard() {
               <div className="flex items-center gap-4">
                 <div className="relative">
                   <img
-                    src={userData?.candidateProfile?.profilePicture || "/assets/teamm1.svg"}
+                    src={
+                      userData?.candidateProfile?.profilePicture ||
+                      "/assets/teamm1.svg"
+                    }
                     alt="Profile"
                     width={80}
                     height={80}
@@ -263,10 +280,7 @@ export default function ProfileDashboard() {
                 {Object.entries(personalDetails).map(([key, value]) => (
                   <div className="flex flex-col">
                     <div key={key} className="flex items-start gap-3 my-3">
-                      {/* Icon */}
                       <div className="w-5 h-5 mt-0.5">{getIcon(key)}</div>
-
-                      {/* Label and Value */}
                       <div>
                         <p className="text-[16px] font-medium leading-[24px] text-[#048BE1]">
                           {customLabels[key] ||
@@ -274,25 +288,37 @@ export default function ProfileDashboard() {
                         </p>
                       </div>
                     </div>
-                    {key !== "foodHygineCert" && (
-                      <p className="text-[16px] leading-[24px] font-normal text-[#000000]">
-                        {value}
-                      </p>
-                    )}
-                    {key === "foodHygineCert" && (
+
+                    {/* Render as image if it's NRIC front/back */}
+                    {["nricFront", "nricBack"].includes(key) &&
+                    value !== "N/A" ? (
+                      <a href={value} target="_blank" rel="noopener noreferrer">
+                        <img
+                          src={`https://drive.google.com/thumbnail?id=${
+                            value.split("/d/")[1]?.split("/")[0]
+                          }`}
+                          alt={`${key}`}
+                          className="w-40 h-auto border rounded-lg"
+                        />
+                      </a>
+                    ) : key === "foodHygineCert" ? (
                       <div className="flex items-center gap-3 p-2 rounded-lg bg-[#FFF4E5] w-fit">
                         <Image className="w-6 h-6" />
                         <p className="text-[16px] leading-[24px] font-normal text-[#000000]">
                           {value}
                         </p>
                       </div>
+                    ) : (
+                      <p className="text-[16px] leading-[24px] font-normal text-[#000000]">
+                        {value}
+                      </p>
                     )}
                   </div>
                 ))}
               </div>
             </div>
           </div>
-          
+
           {/* Stats Section */}
           <div className="bg-white rounded-3xl py-8 px-12 shadow-sm border border-gray-200 z-10">
             {/* <div className="flex gap-6 py-8 border-b">
@@ -321,21 +347,19 @@ export default function ProfileDashboard() {
             {/* <JobHistory jobHistory={userData?.workHistory || {}} />
             <WorkHistory workHistory={userData?.jobHistory || []} /> */}
 
-              <h2 className="text-2xl font-semibold mb-6">Job Overview</h2>
-            
-              <div className="mb-12">
-                <h3 className="text-xl font-medium mb-4 ">Work History</h3>
-                {/* <WorkHistory /> */}
-                <JobHistory jobHistory={userData?.workHistory || {}} />
-              </div>
-            
-              {/* JobHistory Section */}
-              <div className="">
-                <h3 className="text-xl font-medium mb-4">Job History</h3>
-                <WorkHistory workHistory={userData?.jobHistory || []} />
-              </div>
+            <h2 className="text-2xl font-semibold mb-6">Job Overview</h2>
 
+            <div className="mb-12">
+              <h3 className="text-xl font-medium mb-4 ">Work History</h3>
+              {/* <WorkHistory /> */}
+              <JobHistory jobHistory={userData?.workHistory || {}} />
+            </div>
 
+            {/* JobHistory Section */}
+            <div className="">
+              <h3 className="text-xl font-medium mb-4">Job History</h3>
+              <WorkHistory workHistory={userData?.jobHistory || []} />
+            </div>
 
             {/* {activeTab === "jobHistory" ? (
               <WorkHistory workHistory={userData?.jobHistory || []} />
@@ -344,7 +368,6 @@ export default function ProfileDashboard() {
             ) : (
               <div></div>
             )} */}
-
           </div>
           <div className=" bg-white rounded-3xl p-6 shadow-sm border border-gray-200 px-12">
             <h2 className="font-semibold mb-4 text-[16px] text-[#000000]">
