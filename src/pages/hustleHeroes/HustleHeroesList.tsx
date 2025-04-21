@@ -20,6 +20,7 @@ export interface Employee {
     workingHours: string
     avgAttendRate: string
     workPassStatus: "Verified" | "Approved" | "Pending" | "Rejected"
+    profilePicture?: string
   } 
   
 
@@ -27,7 +28,14 @@ export default function HustleHeroesList() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [selectedRows, setSelectedRows] = useState<string[]>([])
   const [isPopupOpen, setIsPopupOpen] = useState<number | null>(null);
-const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+  const [showRejectReasonId, setShowRejectReasonId] = useState<string | null>(
+    null
+  )
+  const [rejectReasons, setRejectReasons] = useState<{ [key: string]: string }>(
+    {}
+  )
+  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+  const navigate = useNavigate()
 
 useEffect(() => {
   // Fetch employees from API
@@ -48,39 +56,35 @@ useEffect(() => {
     }
   }
 
-  const formatDob = (dob) => {
-    const date = new Date(dob);
-    const day = date.getDate();
-    const month = date.toLocaleString("default", { month: "long" });
-    const year = date.getFullYear();
-  
-    // Get ordinal suffix for the day
-    const getOrdinal = (n) => {
-      if (n > 3 && n < 21) return "th";
+  const formatDob = (dob: string) => {
+    const date = new Date(dob)
+    const day = date.getDate()
+    const month = date.toLocaleString("default", { month: "long" })
+    const year = date.getFullYear()
+    const getOrdinal = (n: number) => {
+      if (n > 3 && n < 21) return "th"
       switch (n % 10) {
-        case 1: return "st";
-        case 2: return "nd";
-        case 3: return "rd";
-        default: return "th";
+        case 1:
+          return "st"
+        case 2:
+          return "nd"
+        case 3:
+          return "rd"
+        default:
+          return "th"
       }
-    };
-  
-    return `${day}${getOrdinal(day)} ${month} ${year}`;
-  };
-
-  const calculateAge = (dob) => {
-    const birthDate = new Date(dob);
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const m = today.getMonth() - birthDate.getMonth();
-  
-    // Adjust if birthday hasn't occurred yet this year
-    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
     }
-  
-    return `${age} yrs`;
-  };
+    return `${day}${getOrdinal(day)} ${month} ${year}`
+  }
+
+  const calculateAge = (dob: string) => {
+    const birthDate = new Date(dob)
+    const today = new Date()
+    let age = today.getFullYear() - birthDate.getFullYear()
+    const m = today.getMonth() - birthDate.getMonth()
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--
+    return `${age} yrs`
+  }
   
   
 
@@ -92,13 +96,12 @@ useEffect(() => {
     }
   }
 
-  const navigate = useNavigate()
 
   const handlePopupToggle = (index: number) => {
     setIsPopupOpen(isPopupOpen === index ? null : index);
   };
 
-  const handleActionClick = (action: string, id: number) => {
+  const handleActionClick = (action: string, id: string) => {
     if(action==="View"){
       navigate(`/jobs/:jobId/candidates/${id}`)
     }
@@ -109,7 +112,7 @@ useEffect(() => {
   };
 
 
-  const getStatusColor = (status: Employee["workPassStatus"]) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
       case "Verified":
         return "bg-green-50 text-green-600"
@@ -122,6 +125,41 @@ useEffect(() => {
       default:
         return "bg-gray-50 text-gray-600"
     }
+  }
+
+  const handleVerifyAction = (action: "Approve" | "Reject", id: string) => {
+    if (action === "Reject" && !rejectReasons[id]) {
+      alert("Please enter a rejection reason.")
+      return;
+    }
+    axiosInstance
+      .put(`/admin/verify-candidate/${id}`, {
+        action: action === "Approve" ? "approve" : "reject",
+        rejectionReason: rejectReasons[id] || "",
+      })
+      .then(() => {
+        alert(`Candidate ${action}d`)
+        setEmployees((prev) =>
+          prev.map((emp) =>
+            emp.id === id
+              ? {
+                  ...emp,
+                  workPassStatus:
+                    action === "Approve" ? "Verified" : "Rejected",
+                }
+              : emp
+          )
+        )
+        setShowRejectReasonId(null)
+      })
+      .catch((err) => {
+        console.error(err)
+        alert("Failed to update status.")
+      })
+  }
+
+  const toggleRejectReason = (id: string) => {
+    setShowRejectReasonId((prev) => (prev === id ? null : id))
   }
 
   return (
@@ -165,7 +203,8 @@ useEffect(() => {
             {/* <th className="p-4 truncate text-center border">Turn Up Rate</th> */}
             {/* <th className="p-4 truncate text-center border">Working Hours</th> */}
             {/* <th className="p-4 truncate text-center border">Avg. Attend Rate</th> */}
-            <th className="p-4 truncate text-center border">Work Pass Status</th>
+            <th className="p-4 truncate text-center border">Account Status</th>
+            <th className="p-4 truncate text-center border">Verification Action</th>
             <th className="p-4 truncate text-center border">Action</th>
           </tr>
         </thead>
@@ -210,17 +249,52 @@ useEffect(() => {
               {/* <td className="p-4 truncate text-center border">{employee.workingHours}</td> */}
               {/* <td className="p-4 truncate text-center border">{employee.avgAttendRate}</td> */}
               <td className="p-4 truncate text-center border">
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${getStatusColor(
-                      employee.workPassStatus
-                    )}`}
-                  >
-                    {employee.workPassStatus}
-                    <ChevronDown className="ml-1 h-3 w-3" />
-                  </span>
-                </div>
-              </td>
+  <span
+    className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${getStatusColor(
+      employee.workPassStatus
+    )}`}
+  >
+    {employee.workPassStatus}
+    <ChevronDown className="ml-1 h-3 w-3" />
+  </span>
+</td>
+<td className="p-4 truncate text-center border">
+  <div className="flex flex-col gap-2">
+    <button
+      className="bg-green-100 text-green-700 px-3 py-1 rounded hover:bg-green-200"
+      onClick={() => handleVerifyAction("Approve", employee.id)}
+    >
+      Approve
+    </button>
+    <button
+      className="bg-red-100 text-red-700 px-3 py-1 rounded hover:bg-red-200"
+      onClick={() => toggleRejectReason(employee.id)}
+    >
+      Reject
+    </button>
+    {showRejectReasonId === employee.id && (
+      <>
+        <textarea
+          className="mt-2 p-2 border rounded w-full text-sm"
+          placeholder="Enter rejection reason..."
+          value={rejectReasons[employee.id] || ""}
+          onChange={(e) =>
+            setRejectReasons({
+              ...rejectReasons,
+              [employee.id]: e.target.value,
+            })
+          }
+        />
+        <button
+          className="mt-2 bg-red-700 text-white px-3 py-1 rounded hover:bg-red-800"
+          onClick={() => handleVerifyAction("Reject", employee.id)}  // Trigger reject action
+        >
+          Reject Candidate
+        </button>
+      </>
+    )}
+  </div>
+</td>
               <td className="p-4 truncate text-center border ">
                 <button className="inline-flex items-center rounded-md bg-gray-100 px-3 py-1 text-sm font-medium text-gray-600 hover:bg-gray-200">
                   Action
@@ -246,7 +320,7 @@ useEffect(() => {
                         </button>
                         <button
                           className="flex items-center gap-2 p-2 w-full text-left text-[#E34E30] hover:bg-gray-100"
-                          onClick={() => handleActionClick("Block", index)}
+                          onClick={() => handleActionClick("Block", String(index))}
                         >
                           <Ban size={16} color="#E34E30" />
                           Block
