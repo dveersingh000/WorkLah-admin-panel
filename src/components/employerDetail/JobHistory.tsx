@@ -19,12 +19,12 @@ const JobHistory = ({ jobHistory }) => {
       />
       <StatItem
         icon={Clock}
-        label="Never Turn Up"
+        label="No Show"
         value={jobHistory?.neverTurnUp ?? "N/A"}
       />
       <StatItem
         icon={Clock}
-        label="Working Hours"
+        label="Total Working Hours"
         value={jobHistory?.workingHours ?? "N/A"}
       />
       <StatItem
@@ -32,11 +32,11 @@ const JobHistory = ({ jobHistory }) => {
         label="Total Completed Jobs"
         value={jobHistory?.totalCompletedJobs ?? "N/A"}
       />
-      <StatItem
+      {/* <StatItem
         icon={CalendarX2}
         label="More than 24hrs Cancellation"
         value={jobHistory?.moreThan24hrsCancellation ?? "N/A"}
-      />
+      /> */}
       <StatItem
         icon={CalendarX2}
         label="Less than 24hrs Cancellation"

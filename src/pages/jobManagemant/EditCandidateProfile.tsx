@@ -249,43 +249,7 @@ export default function EditCandidateProfile() {
 
   return (
     <div className="min-h-screen pb-20">
-      {/* Header */}
-      <div
-        className="relative h-64 bg-cover bg-center"
-        style={{
-          backgroundImage:
-            "url('https://www.shutterstock.com/image-photo/project-manager-working-ai-management-260nw-2424036963.jpg')",
-        }}
-      >
-        <div className="absolute top-4 left-4 right-4 flex justify-between items-center">
-          
-          <button onClick={() => navigate(-1)} className="p-2 rounded-full shadow-custom bg-white">
-            <ArrowLeft className="w-4 h-4 " color="#000000" />
-          </button>
-          <div className="flex gap-4">
-            <button className="px-4 py-3 rounded-[10px] bg-white flex items-center text-black gap-3">
-              <Camera className="w-6 h-6" />
-              Change cover
-            </button>
-            <button onClick={toggleMenu} className="p-4 rounded-full bg-white">
-              <Settings className="w-6 h-6" />
-            </button>
-          </div>
-          {isOpen && (
-            <div className="absolute right-0 mt-2 w-48 top-14 bg-white border border-gray-300 rounded-lg shadow-lg z-50">
-              <ul className="py-2">
-                {/* Block Candidate */}
-                <li>
-                  <button className="flex items-center w-full px-4 py-2 text-sm text-[#941F15] hover:bg-red-100">
-                    <Ban className="w-4 h-4 mr-2 text-red-500" />
-                    Block Candidate
-                  </button>
-                </li>
-              </ul>
-            </div>
-          )}
-        </div>
-      </div>
+      
 
       <div className="max-w-7xl mx-auto px-4 -mt-14">
         <div className="gap-6 flex flex-col">
@@ -302,7 +266,7 @@ export default function EditCandidateProfile() {
                     className="rounded-full "
                   />
                 </div>
-                <div className="flex flex-col items-start gap-1">
+                {/* <div className="flex flex-col items-start gap-1">
                   <p className="text-[16px] leading-[24px] font-medium text-[#4c4c4c]">
                     ID:{" "}
                     <span className="text-[#000000] text-[16px] leading-[24px] font-medium ml-2">
@@ -310,7 +274,7 @@ export default function EditCandidateProfile() {
                       24575
                     </span>
                   </p>
-                </div>
+                </div> */}
               </div>
             </div>
 
