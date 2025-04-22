@@ -49,6 +49,8 @@ interface PersonalDetails {
   FoodHygineCert: string;
   Photo: string;
   Nationality: string;
+  nricFront: string;
+  nricBack: string;
 }
 
 interface ActiveJobs {
@@ -67,22 +69,22 @@ interface ActiveJobs {
 export default function EditCandidateProfile() {
   const { id } = useParams<{ id: string }>();
   const [userData, setUserData] = useState<any>(null);
-      console.log("userData", userData)
-      const [formData, setFormData] = useState({
-        name: '',
-        gender: 'Male',
-        workPassStatus: 'Verified',
-        dob: "01/01/2002",
-        status: '',
-        mobile: '',
-        email: '',
-        postalCode: '',
-        country: '',
-        city: '',
-        street: '',
-        town: '', // add this line
-      });
-      
+  console.log("userData", userData)
+  const [formData, setFormData] = useState({
+    name: '',
+    gender: 'Male',
+    workPassStatus: 'Verified',
+    dob: "01/01/2002",
+    status: '',
+    mobile: '',
+    email: '',
+    postalCode: '',
+    country: '',
+    city: '',
+    street: '',
+    town: '', // add this line
+  });
+
 
   const [activeTab, setActiveTab] = useState("jobHistory");
 
@@ -97,13 +99,15 @@ export default function EditCandidateProfile() {
 
   const personalDetails: PersonalDetails = {
     EWalletAmount: userData?.candidateProfile?.personalDetails?.eWalletAmount || "N/A",
-    Race: userData?.candidateProfile?.personalDetails?.race || "N/A",
+    // Race: userData?.candidateProfile?.personalDetails?.race || "N/A",
     NRIC: userData?.candidateProfile?.personalDetails?.nric || "N/A",
     PostalCode: userData?.candidateProfile?.personalDetails?.postalCode || "N/A",
-    FoodHygineCert: userData?.candidateProfile?.personalDetails?.foodHygieneCert || "N/A",
-    Photo: userData?.candidateProfile?.personalDetails?.photo || "N/A",
+    // FoodHygineCert: userData?.candidateProfile?.personalDetails?.foodHygieneCert || "N/A",
+    // Photo: userData?.candidateProfile?.personalDetails?.photo || "N/A",
     Nationality: userData?.candidateProfile?.personalDetails?.nationality || "N/A",
-  };  
+    nricFront: userData?.candidateProfile?.personalDetails?.nricFront || "N/A",
+    nricBack: userData?.candidateProfile?.personalDetails?.nricBack || "N/A",
+  };
 
   const activeJobs: ActiveJobs = {
     job: "Tray Collecter",
@@ -120,12 +124,14 @@ export default function EditCandidateProfile() {
 
   const customLabels: Record<string, string> = {
     EWalletAmount: "E-Wallet Amount",
-    Race: "Race",
+    // Race: "Race",
     NRIC: "NRIC",
     PostalCode: "Postal Code",
-    FoodHygineCert: "Food & Hygiene Cert",
-    Photo: "Photo",
+    // FoodHygineCert: "Food & Hygiene Cert",
+    // Photo: "Photo",
     Nationality: "Nationality",
+    nricFront: "NRIC Front",
+    nricBack: "NRIC Back",
   };
 
   const navigate = useNavigate()
@@ -147,7 +153,7 @@ export default function EditCandidateProfile() {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: value, 
+      [name]: value,
     }));
   };
 
@@ -156,7 +162,7 @@ export default function EditCandidateProfile() {
       .then(response => {
         const { candidateProfile } = response.data;
         setUserData(response.data);
-  
+
         setFormData({
           name: candidateProfile.fullName || '',
           gender: candidateProfile.gender || 'Male',
@@ -177,8 +183,8 @@ export default function EditCandidateProfile() {
         console.error("Error fetching employee:", error);
       });
   }, []);
-  
-  
+
+
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -192,22 +198,22 @@ export default function EditCandidateProfile() {
       city: formData.city,
       town: formData.town,
       country: formData.country,
-      employmentStatus:formData.status
+      employmentStatus: formData.status
     }
     console.log("submit", formDataToSend)
 
-  
-    try {
-       const response = await axiosInstance.put(`/admin/candidates/${id}`, formDataToSend, {
-              headers: { "Content-Type": "application/json" },
-            });
 
-            console.log(response)
-  
+    try {
+      const response = await axiosInstance.put(`/admin/candidates/${id}`, formDataToSend, {
+        headers: { "Content-Type": "application/json" },
+      });
+
+      console.log(response)
+
       if (!response.status == 200) {
         throw new Error("Failed to update profile");
       }
-  
+
       console.log("Profile updated successfully:", response);
       alert("Profile updated successfully!");
       navigate(-1)
@@ -216,24 +222,28 @@ export default function EditCandidateProfile() {
       alert("Failed to update profile. Please try again.");
     }
   };
-  
+
 
   const getIcon = (key: string) => {
     switch (key) {
       case "EWalletAmount":
         return <Wallet2 className="w-5 h-5 text-[#048BE1]" />;
-      case "Race":
-        return <User className="w-5 h-5 text-[#048BE1]" />;
+      // case "Race":
+      //   return <User className="w-5 h-5 text-[#048BE1]" />;
       case "NRIC":
         return <FaRegIdCard className="w-5 h-5 text-[#048BE1]" />;
       case "PostalCode":
         return <MapPin className="w-5 h-5 text-[#048BE1]" />;
-      case "FoodHygineCert":
-        return <FaHandHoldingWater className="w-5 h-5 text-[#048BE1]" />;
-      case "Photo":
-        return <ImageIcon className="w-5 h-5 text-[#048BE1]" />;
+      // case "FoodHygineCert":
+      //   return <FaHandHoldingWater className="w-5 h-5 text-[#048BE1]" />;
+      // case "Photo":
+      //   return <ImageIcon className="w-5 h-5 text-[#048BE1]" />;
       case "Nationality":
         return <MdOutlineOutlinedFlag className="w-5 h-5 text-[#048BE1]" />;
+      case "nricFront":
+        return <TbUserHexagon className="w-6 h-6 text-[#048BE1]" />;
+      case "nricBack":
+        return <TbUserHexagon className="w-6 h-6 text-[#048BE1]" />;
       default:
         return null;
     }
@@ -249,7 +259,7 @@ export default function EditCandidateProfile() {
 
   return (
     <div className="min-h-screen pb-20">
-      
+
 
       <div className="max-w-7xl mx-auto px-4 -mt-14">
         <div className="gap-6 flex flex-col">
@@ -282,7 +292,7 @@ export default function EditCandidateProfile() {
               <div className="flex flex-col items-start gap-1">
                 <div className="flex items-center">
                   <h1 className=" text-[24px] leading-[30px] font-medium">
-                  {userData?.candidateProfile?.fullName || "N/A"}{" "}
+                    {userData?.candidateProfile?.fullName || "N/A"}{" "}
                   </h1>
                   <span className="text-[#049609] bg-[#CEFFCF] rounded-full px-3 py-0.5 mt-2 text-[16px] leading-[24px] font-medium ml-2">
                     {" "}
@@ -311,7 +321,7 @@ export default function EditCandidateProfile() {
                   <p className="text-[16px] leading-[24px] font-medium text-[#4c4c4c]">
                     Registered at:{" "}
                     <span className="text-[#000000] text-[16px] leading-[24px] font-medium ml-2">
-                    {userData?.candidateProfile?.registeredAt}
+                      {userData?.candidateProfile?.registeredAt}
                     </span>
                   </p>
                 </p>
@@ -319,7 +329,7 @@ export default function EditCandidateProfile() {
                   <p className="text-[16px] leading-[24px] font-medium text-[#4c4c4c]">
                     Contact Number:{" "}
                     <span className="text-[#000000] text-[16px] leading-[24px] font-medium ml-2">
-                    {userData?.candidateProfile?.personalDetails.contactNumber}
+                      {userData?.candidateProfile?.personalDetails.contactNumber}
 
                     </span>
                   </p>
@@ -354,18 +364,32 @@ export default function EditCandidateProfile() {
                         </p>
                       </div>
                     </div>
-                    {key !== "foodHygineCert" && (
-                      <p className="text-[16px] leading-[24px] font-normal text-[#000000]">
-                        {value}
-                      </p>
-                    )}
-                    {key === "foodHygineCert" && (
+                    {/* Render as image if it's NRIC front/back */}
+                    {["nricFront", "nricBack"].includes(key) && value !== "N/A" ? (
+                      <a href={value} target="_blank" rel="noopener noreferrer">
+                        <img
+                          src={
+                            value.includes("drive.google.com")
+                              ? `https://drive.google.com/uc?export=view&id=${value
+                                .split("/d/")[1]
+                                ?.split("/")[0]}`
+                              : value // fallback to direct URL (like Cloudinary)
+                          }
+                          alt={`${key}`}
+                          className="w-40 h-auto border rounded-lg"
+                        />
+                      </a>
+                    ) : key === "foodHygineCert" ? (
                       <div className="flex items-center gap-3 p-2 rounded-lg bg-[#FFF4E5] w-fit">
                         <Image className="w-6 h-6" />
                         <p className="text-[16px] leading-[24px] font-normal text-[#000000]">
                           {value}
                         </p>
                       </div>
+                    ) : (
+                      <p className="text-[16px] leading-[24px] font-normal text-[#000000]">
+                        {value}
+                      </p>
                     )}
                   </div>
                 ))}
@@ -403,24 +427,24 @@ export default function EditCandidateProfile() {
             {/* {activeTab === "jobHistory" ? <JobHistory /> :  <JobHistory />  } */}
 
 
-  {/* Title Section (Optional) */}
-  <h2 className="text-2xl font-semibold mb-6">Job Overview</h2>
+            {/* Title Section (Optional) */}
+            <h2 className="text-2xl font-semibold mb-6">Job Overview</h2>
 
-  <div className="mb-12">
+            <div className="mb-12">
 
 
-    <h3 className="text-xl font-medium mb-4">Job History</h3>
-    <JobHistory jobHistory={userData?.workHistory || {}} />
-  </div>
+              <h3 className="text-xl font-medium mb-4">Job History</h3>
+              <JobHistory jobHistory={userData?.workHistory || {}} />
+            </div>
 
-  {/* JobHistory Section */}
-  <div className="">
-  <h3 className="text-xl font-medium mb-4 ">Work History</h3>
-  <WorkHistory workHistory={userData?.jobHistory || {}} />
-  </div>
+            {/* JobHistory Section */}
+            <div className="">
+              <h3 className="text-xl font-medium mb-4 ">Work History</h3>
+              <WorkHistory workHistory={userData?.jobHistory || {}} />
+            </div>
 
-  {/* WorkHistory Section */}
- 
+            {/* WorkHistory Section */}
+
 
           </div>
 
@@ -438,7 +462,7 @@ export default function EditCandidateProfile() {
                 <div className="relative">
                   <input
                     type="text"
-                     name="name"
+                    name="name"
                     value={formData.name}
                     onChange={handleChange}
                     className="w-full px-3 py-2 border rounded-lg pr-10"
@@ -450,11 +474,11 @@ export default function EditCandidateProfile() {
               {/* Gender */}
               <div>
                 <label className="block text-sm mb-2">Gender</label>
-                <select 
-                name="gender"
-                value={formData.gender}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border rounded-lg appearance-none bg-white">
+                <select
+                  name="gender"
+                  value={formData.gender}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border rounded-lg appearance-none bg-white">
                   <option>Male</option>
                   <option>Female</option>
                   <option>Other</option>
@@ -465,9 +489,9 @@ export default function EditCandidateProfile() {
               <div>
                 <label className="block text-sm mb-2">Work Pass Status</label>
                 <select className="w-full px-3 py-2 border rounded-lg appearance-none bg-white"
-                name="status"
-                value={formData.status}
-                onChange={handleChange}>
+                  name="status"
+                  value={formData.status}
+                  onChange={handleChange}>
                   <option>Singaporean/Permanent Resident</option>
                   <option>Long Term Visit Pass Holder</option>
                   <option>Student Pass</option>
@@ -479,11 +503,11 @@ export default function EditCandidateProfile() {
               <div>
                 <label className="block text-sm mb-2">DOB</label>
                 <div
-                   name="dob"
-                   type="date"
-                   value={formData.dob}
-                   onChange={handleChange}
-                    className="flex gap-2">
+                  name="dob"
+                  type="date"
+                  value={formData.dob}
+                  onChange={handleChange}
+                  className="flex gap-2">
                   <select className="px-3 py-2 border rounded-lg appearance-none bg-white">
                     <option>1</option>
                     {/* Add more days */}
@@ -554,12 +578,12 @@ export default function EditCandidateProfile() {
               <div>
                 <label className="block text-sm mb-2">Country</label>
                 <input
-                   type="text"
-                   name="country"
-                   onChange={handleChange}
-                   value={formData.country}
+                  type="text"
+                  name="country"
+                  onChange={handleChange}
+                  value={formData.country}
                   className="w-full px-3 py-2 bg-gray-100 rounded-lg"
-                  // disabled
+                // disabled
                 />
               </div>
 
@@ -572,7 +596,7 @@ export default function EditCandidateProfile() {
                   type="text"
                   value={formData.city}
                   className="w-full px-3 py-2 bg-gray-100 rounded-lg"
-                  // disabled
+                // disabled
                 />
               </div>
 
@@ -619,9 +643,9 @@ export default function EditCandidateProfile() {
               <div></div> */}
 
               {/* Buttons */}
-             
-            
-            <div className="flex w-full items-start mx-[25%] gap-4 mt-20">
+
+
+              <div className="flex w-full items-start mx-[25%] gap-4 mt-20">
                 <button
                   type="button"
                   className="flex-1 px-14 py-4 border border-[#0099FF] text-[#0099FF] rounded-lg hover:bg-gray-50"
@@ -635,7 +659,7 @@ export default function EditCandidateProfile() {
                   Save
                 </button>
               </div>
-              </form>
+            </form>
           </div>
         </div>
       </div>

@@ -84,9 +84,9 @@ export default function ProfileDashboard() {
       userData?.candidateProfile?.personalDetails?.nationality || "N/A",
     paynowNum:
       userData?.candidateProfile?.personalDetails?.paynowNumber || "N/A",
-    race: userData?.candidateProfile?.personalDetails?.race || "N/A",
-    foodHygineCert:
-      userData?.candidateProfile?.personalDetails?.foodHygieneCert || "N/A",
+    // race: userData?.candidateProfile?.personalDetails?.race || "N/A",
+    // foodHygineCert:
+    //   userData?.candidateProfile?.personalDetails?.foodHygieneCert || "N/A",
     icNumber: userData?.candidateProfile?.personalDetails?.icNumber || "N/A",
     nricFront: userData?.candidateProfile?.personalDetails?.nricFront || "N/A",
     nricBack: userData?.candidateProfile?.personalDetails?.nricBack || "N/A",
@@ -94,9 +94,8 @@ export default function ProfileDashboard() {
 
   const activeJobs: ActiveJobs = {
     job: userData?.activeJob?.jobName || "N/A",
-    ongoingShift: `${userData?.activeJob?.shiftStartTime || "N/A"} ---- ${
-      userData?.activeJob?.shiftEndTime || "N/A"
-    }`,
+    ongoingShift: `${userData?.activeJob?.shiftStartTime || "N/A"} ---- ${userData?.activeJob?.shiftEndTime || "N/A"
+      }`,
     clockedIn: userData?.activeJob?.clockedIn || "N/A",
     employer: userData?.activeJob?.employer || "N/A",
     duration: userData?.activeJob?.duration || "N/A",
@@ -172,7 +171,7 @@ export default function ProfileDashboard() {
         return <TbUserHexagon className="w-6 h-6 text-[#048BE1]" />;
       case "nricFront":
         return <TbUserHexagon className="w-6 h-6 text-[#048BE1]" />;
-        case "nricBack":
+      case "nricBack":
         return <TbUserHexagon className="w-6 h-6 text-[#048BE1]" />;
       default:
         return null;
@@ -290,13 +289,16 @@ export default function ProfileDashboard() {
                     </div>
 
                     {/* Render as image if it's NRIC front/back */}
-                    {["nricFront", "nricBack"].includes(key) &&
-                    value !== "N/A" ? (
+                    {["nricFront", "nricBack"].includes(key) && value !== "N/A" ? (
                       <a href={value} target="_blank" rel="noopener noreferrer">
                         <img
-                          src={`https://drive.google.com/thumbnail?id=${
-                            value.split("/d/")[1]?.split("/")[0]
-                          }`}
+                          src={
+                            value.includes("drive.google.com")
+                              ? `https://drive.google.com/uc?export=view&id=${value
+                                .split("/d/")[1]
+                                ?.split("/")[0]}`
+                              : value // fallback to direct URL (like Cloudinary)
+                          }
                           alt={`${key}`}
                           className="w-40 h-auto border rounded-lg"
                         />
@@ -313,6 +315,7 @@ export default function ProfileDashboard() {
                         {value}
                       </p>
                     )}
+
                   </div>
                 ))}
               </div>
