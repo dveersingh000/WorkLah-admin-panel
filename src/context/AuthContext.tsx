@@ -51,6 +51,7 @@ export const AuthProvider: React.FC<PropsWithChildren<{}>> = ({ children }) => {
 
   const login = async (email: string, password: string) => {
     try {
+      debugger
       console.log("Trying login with:", { email, password });
       const response = await axiosInstance.post('/user/login', { email, password });
       setUser(response.data.user);

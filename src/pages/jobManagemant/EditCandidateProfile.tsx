@@ -22,7 +22,7 @@ import {
   PencilIcon,
   CalendarIcon,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { FaRegIdCard } from "react-icons/fa";
 import {
   MdOutlineDateRange,
@@ -40,6 +40,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import JobHistory from "../../components/employerDetail/JobHistory";
 import WorkHistory from "../../components/employerDetail/WorkHistory";
 import { axiosInstance } from "../../lib/authInstances";
+import uploadImageOnCloudinary from "../../utils/images/imageUpload";
 
 interface PersonalDetails {
   EWalletAmount: string;
@@ -69,26 +70,34 @@ interface ActiveJobs {
 export default function EditCandidateProfile() {
   const { id } = useParams<{ id: string }>();
   const [userData, setUserData] = useState<any>(null);
-  console.log("userData", userData)
+  console.log("userData", userData);
   const [formData, setFormData] = useState({
-    name: '',
-    gender: 'Male',
-    workPassStatus: 'Verified',
+    name: "",
+    gender: "Male",
+    workPassStatus: "Verified",
     dob: "01/01/2002",
-    status: '',
-    mobile: '',
-    email: '',
-    postalCode: '',
-    country: '',
-    city: '',
-    street: '',
-    town: '', // add this line
+    status: "",
+    mobile: "",
+    email: "",
+    postalCode: "",
+    country: "",
+    city: "",
+    street: "",
+    town: "", // add this line
+    foodHygieneCert: null,
+    selfie: null,
+    nricFront: null,
+    nricBack: null,
+    finFront: null,
+    finBack: null,
+    plocImage: null,
+    studentCard: null,
   });
-
 
   const [activeTab, setActiveTab] = useState("jobHistory");
 
   const [isOpen, setIsOpen] = useState(false);
+  const [loading,setLoading]=useState(false);
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
@@ -98,13 +107,16 @@ export default function EditCandidateProfile() {
   ];
 
   const personalDetails: PersonalDetails = {
-    EWalletAmount: userData?.candidateProfile?.personalDetails?.eWalletAmount || "N/A",
+    EWalletAmount:
+      userData?.candidateProfile?.personalDetails?.eWalletAmount || "N/A",
     // Race: userData?.candidateProfile?.personalDetails?.race || "N/A",
     NRIC: userData?.candidateProfile?.personalDetails?.nric || "N/A",
-    PostalCode: userData?.candidateProfile?.personalDetails?.postalCode || "N/A",
+    PostalCode:
+      userData?.candidateProfile?.personalDetails?.postalCode || "N/A",
     // FoodHygineCert: userData?.candidateProfile?.personalDetails?.foodHygieneCert || "N/A",
     // Photo: userData?.candidateProfile?.personalDetails?.photo || "N/A",
-    Nationality: userData?.candidateProfile?.personalDetails?.nationality || "N/A",
+    Nationality:
+      userData?.candidateProfile?.personalDetails?.nationality || "N/A",
     nricFront: userData?.candidateProfile?.personalDetails?.nricFront || "N/A",
     nricBack: userData?.candidateProfile?.personalDetails?.nricBack || "N/A",
   };
@@ -134,7 +146,7 @@ export default function EditCandidateProfile() {
     nricBack: "NRIC Back",
   };
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const customLablesActiveJobs: Record<string, string> = {
     job: "Job",
@@ -149,7 +161,31 @@ export default function EditCandidateProfile() {
     rateType: "Rate Type",
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const getImageUrl = useCallback(async (e, type) => {
+   // debugger
+    try {
+      setLoading(true)
+      const url = await uploadImageOnCloudinary(e);
+      setLoading(false)
+      console.log("Uploaded URL:", url);
+
+      setFormData((prevState) => ({
+        ...prevState,
+        [type]: url, // Save the URL in the formData
+      }));
+
+      // Set preview for the uploaded image
+    } catch (error) {
+      console.error("Image upload failed:", error);
+      alert("Failed to upload image. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -158,37 +194,46 @@ export default function EditCandidateProfile() {
   };
 
   useEffect(() => {
-    axiosInstance.get(`/admin/candidates/${id}`)
-      .then(response => {
+    // debugger;
+    axiosInstance
+      .get(`/admin/candidates/${id}`)
+      .then((response) => {
         const { candidateProfile } = response.data;
         setUserData(response.data);
 
         setFormData({
-          name: candidateProfile.fullName || '',
-          gender: candidateProfile.gender || 'Male',
-          workPassStatus: candidateProfile.employmentStatus || '',
-          dob: candidateProfile.dob || '',
-          status: candidateProfile.employmentStatus || '',
-          mobile: candidateProfile.personalDetails?.contactNumber || '',
-          email: candidateProfile.email || '',
-          postalCode: candidateProfile.personalDetails?.postalCode || '',
-          country: candidateProfile.personalDetails?.nationality || '',
-          city: candidateProfile.personalDetails?.city || '',
-          street: candidateProfile.personalDetails?.street || '',
+          name: candidateProfile.fullName || "",
+          gender: candidateProfile.gender || "Male",
+          workPassStatus: candidateProfile.employmentStatus || "",
+          dob: candidateProfile.dob || "",
+          status: candidateProfile.employmentStatus || "",
+          mobile: candidateProfile.personalDetails?.contactNumber || "",
+          email: candidateProfile.email || "",
+          postalCode: candidateProfile.personalDetails?.postalCode || "",
+          country: candidateProfile.personalDetails?.nationality || "",
+          city: candidateProfile.personalDetails?.city || "",
+          street: candidateProfile.personalDetails?.street || "",
           // town is not included in your formData, add it if needed
-          town: candidateProfile.personalDetails?.town || '',
+          town: candidateProfile.personalDetails?.town || "",
+          foodHygieneCert: candidateProfile?.foodHygieneCert || null,
+          selfie: candidateProfile?.selfie || null,
+          nricFront: candidateProfile?. nricFront || null,
+          nricBack: candidateProfile?.nricBack || null,
+          finFront: candidateProfile?.finFront || null,
+          finBack: candidateProfile?.finBack || null,
+          plocImage: candidateProfile?.plocImage || null,
+          studentCard: candidateProfile?.studentCard || null,
         });
       })
-      .catch(error => {
+      .catch((error) => {
         console.error("Error fetching employee:", error);
       });
   }, []);
 
-
-
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
+    //debugger
     const formDataToSend = {
       fullName: formData.name,
       phoneNumber: formData.mobile,
@@ -198,17 +243,29 @@ export default function EditCandidateProfile() {
       city: formData.city,
       town: formData.town,
       country: formData.country,
-      employmentStatus: formData.status
-    }
-    console.log("submit", formDataToSend)
-
+      employmentStatus: formData.status,
+      foodHygieneCert: formData.foodHygieneCert,
+      selfie: formData.selfie,
+      nricFront: formData.nricFront,
+      nricBack: formData.nricBack,
+      finFront: formData.finFront,
+      finBack: formData.finBack,
+      plocImage: formData.plocImage,
+      studentCard: formData.studentCard,
+      
+    };
+    console.log("submit", formDataToSend);
 
     try {
-      const response = await axiosInstance.put(`/admin/candidates/${id}`, formDataToSend, {
-        headers: { "Content-Type": "application/json" },
-      });
+      const response = await axiosInstance.post(
+        `/admin/candidates/${id}`,
+        formDataToSend,
+        {
+          headers: { "Content-Type": "application/json" },
+        }
+      );
 
-      console.log(response)
+      console.log(response);
 
       if (!response.status == 200) {
         throw new Error("Failed to update profile");
@@ -216,13 +273,12 @@ export default function EditCandidateProfile() {
 
       console.log("Profile updated successfully:", response);
       alert("Profile updated successfully!");
-      navigate(-1)
+      navigate(-1);
     } catch (error) {
       console.error("Error updating profile:", error);
       alert("Failed to update profile. Please try again.");
     }
   };
-
 
   const getIcon = (key: string) => {
     switch (key) {
@@ -259,8 +315,6 @@ export default function EditCandidateProfile() {
 
   return (
     <div className="min-h-screen pb-20">
-
-
       <div className="max-w-7xl mx-auto px-4 -mt-14">
         <div className="gap-6 flex flex-col">
           {/* Profile Card */}
@@ -329,8 +383,10 @@ export default function EditCandidateProfile() {
                   <p className="text-[16px] leading-[24px] font-medium text-[#4c4c4c]">
                     Contact Number:{" "}
                     <span className="text-[#000000] text-[16px] leading-[24px] font-medium ml-2">
-                      {userData?.candidateProfile?.personalDetails.contactNumber}
-
+                      {
+                        userData?.candidateProfile?.personalDetails
+                          .contactNumber
+                      }
                     </span>
                   </p>
                 </p>
@@ -365,32 +421,6 @@ export default function EditCandidateProfile() {
                       </div>
                     </div>
                     {/* Render as image if it's NRIC front/back */}
-                    {["nricFront", "nricBack"].includes(key) && value !== "N/A" ? (
-                      <a href={value} target="_blank" rel="noopener noreferrer">
-                        <img
-                          src={
-                            value.includes("drive.google.com")
-                              ? `https://drive.google.com/uc?export=view&id=${value
-                                .split("/d/")[1]
-                                ?.split("/")[0]}`
-                              : value // fallback to direct URL (like Cloudinary)
-                          }
-                          alt={`${key}`}
-                          className="w-40 h-auto border rounded-lg"
-                        />
-                      </a>
-                    ) : key === "foodHygineCert" ? (
-                      <div className="flex items-center gap-3 p-2 rounded-lg bg-[#FFF4E5] w-fit">
-                        <Image className="w-6 h-6" />
-                        <p className="text-[16px] leading-[24px] font-normal text-[#000000]">
-                          {value}
-                        </p>
-                      </div>
-                    ) : (
-                      <p className="text-[16px] leading-[24px] font-normal text-[#000000]">
-                        {value}
-                      </p>
-                    )}
                   </div>
                 ))}
               </div>
@@ -426,13 +456,10 @@ export default function EditCandidateProfile() {
             {/* {activeTab === "jobHistory" ? <JobHistory /> : <WorkHistory />} */}
             {/* {activeTab === "jobHistory" ? <JobHistory /> :  <JobHistory />  } */}
 
-
             {/* Title Section (Optional) */}
             <h2 className="text-2xl font-semibold mb-6">Job Overview</h2>
 
             <div className="mb-12">
-
-
               <h3 className="text-xl font-medium mb-4">Job History</h3>
               <JobHistory jobHistory={userData?.workHistory || {}} />
             </div>
@@ -444,8 +471,6 @@ export default function EditCandidateProfile() {
             </div>
 
             {/* WorkHistory Section */}
-
-
           </div>
 
           {/* form */}
@@ -455,7 +480,10 @@ export default function EditCandidateProfile() {
               <h1 className="text-lg font-medium">Edit Candidate Details</h1>
             </div>
 
-            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <form
+              onSubmit={handleSubmit}
+              className="grid grid-cols-1 md:grid-cols-2 gap-6"
+            >
               {/* Candidate Name */}
               <div>
                 <label className="block text-sm mb-2">Candidate Name</label>
@@ -478,7 +506,8 @@ export default function EditCandidateProfile() {
                   name="gender"
                   value={formData.gender}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border rounded-lg appearance-none bg-white">
+                  className="w-full px-3 py-2 border rounded-lg appearance-none bg-white"
+                >
                   <option>Male</option>
                   <option>Female</option>
                   <option>Other</option>
@@ -488,10 +517,12 @@ export default function EditCandidateProfile() {
               {/* Work Pass Status */}
               <div>
                 <label className="block text-sm mb-2">Work Pass Status</label>
-                <select className="w-full px-3 py-2 border rounded-lg appearance-none bg-white"
+                <select
+                  className="w-full px-3 py-2 border rounded-lg appearance-none bg-white"
                   name="status"
                   value={formData.status}
-                  onChange={handleChange}>
+                  onChange={handleChange}
+                >
                   <option>Singaporean/Permanent Resident</option>
                   <option>Long Term Visit Pass Holder</option>
                   <option>Student Pass</option>
@@ -507,7 +538,8 @@ export default function EditCandidateProfile() {
                   type="date"
                   value={formData.dob}
                   onChange={handleChange}
-                  className="flex gap-2">
+                  className="flex gap-2"
+                >
                   <select className="px-3 py-2 border rounded-lg appearance-none bg-white">
                     <option>1</option>
                     {/* Add more days */}
@@ -583,7 +615,7 @@ export default function EditCandidateProfile() {
                   onChange={handleChange}
                   value={formData.country}
                   className="w-full px-3 py-2 bg-gray-100 rounded-lg"
-                // disabled
+                  // disabled
                 />
               </div>
 
@@ -596,7 +628,7 @@ export default function EditCandidateProfile() {
                   type="text"
                   value={formData.city}
                   className="w-full px-3 py-2 bg-gray-100 rounded-lg"
-                // disabled
+                  // disabled
                 />
               </div>
 
@@ -614,6 +646,51 @@ export default function EditCandidateProfile() {
                   <PencilIcon className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 </div>
               </div>
+
+              {/* upload NRIC Front */}
+             {
+              loading===false?
+              <>
+               {[
+                "nricFront",
+                "nricBack",
+                "finFront",
+                "finBack",
+                "plocImage",
+                "studentCard",
+                "selfie",
+                "foodHygieneCert"
+              ].map((doc) => (
+                <div key={doc} className="mb-4">
+                  <label className="block text-sm mb-2 capitalize">
+                    Upload {doc}
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="file"
+                      accept="image/*,application/pdf,text/plain"
+                      className="w-full border border-gray-300 rounded-lg p-3"
+                      onChange={(e) => getImageUrl(e, doc)}
+                    />
+
+                    {formData[doc] != null && (
+                      <img
+                        src={formData[doc]}
+                        alt={`${doc} preview`}
+                        className="mt-2 rounded-md max-h-40 object-contain"
+                      />
+                    )}
+
+                    <PencilIcon className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  </div>
+                </div>
+              ))}
+              </>
+              :
+              <>
+              <p>loading....</p>
+              </>
+             }
 
               {/* <div>
                 <label className="block text-sm mb-2"></label>
@@ -643,7 +720,6 @@ export default function EditCandidateProfile() {
               <div></div> */}
 
               {/* Buttons */}
-
 
               <div className="flex w-full items-start mx-[25%] gap-4 mt-20">
                 <button

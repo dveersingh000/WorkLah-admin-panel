@@ -404,63 +404,63 @@ const ActiveJobPosting = () => {
                         {" "}
                         <img
                           className="h-5"
-                          src={job?.titleimage}
-                          alt={job?.titleimage}
+                          src={job.titleimage}
+                          alt={job.titleimage}
                         />
-                        {job?.jobName}
+                        {job.jobName}
                       </div>
                       <img
                         className="h-5 mt-2"
-                        src={job?.companyimage}
-                        alt={job?.companyimage}
+                        src={job.companyimage}
+                        alt={job.companyimage}
                       />
                     </div>
                   </td>
                   <td className="py-6 px-8 truncate text-center text-[16px] leading-[20px] font-normal">
-                    {job?._id}
+                    {job._id}
                   </td>
                   <td className="py-6 px-8 truncate text-[16px] leading-[20px] font-normal">
-                    {job?.address}
+                    {job.address}
                   </td>
                   <td className="py-6 px-8 truncate text-center text-[16px] leading-[20px] font-normal ">
-                    {job?.date}
+                    {job.date}
                   </td>
                   <td className="py-6 px-8 truncate text-center text-[16px] leading-[20px] font-normal">
-                    {job?.availableShifts}
+                    {job.availableShifts}
                   </td>
                   <td className="py-6 px-8 truncate text-center text-[16px] leading-[20px] font-medium">
-                    {job?.shifts.reduce((total, shift) => total + shift.vacancyFilled, 0)}
+                    {job.shifts.reduce((total, shift) => total + shift.vacancyFilled, 0)}
                   </td>
                   <td className="py-6 px-8 truncate text-center text-[16px] leading-[20px] font-medium">
-                  {job?.shifts.reduce((total, shift) => total + shift.standbyFilled, 0)}
+                  {job.shifts.reduce((total, shift) => total + shift.standbyFilled, 0)}
                   </td>
                   <td className="py-6 px-8 truncate text-center text-[16px] leading-[20px] font-medium">
-                  {job?.shifts.reduce((total, shift) => total + shift.breakHours, 0)}
+                  {job.shifts.reduce((total, shift) => total + shift.breakHours, 0)}
                     <br />
                     <span className="text-[16px] leading-[20px] font-medium text-[#676767]">
                       (Unpaid)
                     </span>
                   </td>
                   <td className="py-6 px-8 truncate text-center text-[16px] leading-[20px] font-medium">
-                  {job?.shifts.reduce((total, shift) => total + shift.duration, 0)}
+                  {job.shifts.reduce((total, shift) => total + shift.duration, 0)}
 
                   </td>
                   <td className="py-3 px-4 text-center text-[16px] leading-[20px] font-normal">
-                    {job?.vacancy}
+                    {job.vacancy}
                     <br />
                     <span className="text-blue-500 bg-[#FFF1E3] px-3 py-1 rounded-full mt-1">
-                      Standby:{job?.shifts.reduce((total, shift) => shift.rateType, 0)}
+                      Standby:{job.shifts.reduce((total, shift) => shift.rateType, 0)}
 
                     </span>
                   </td>
                   <td className="py-6 px-8 truncate text-center text-[16px] leading-[20px] font-normal">
-                  {job?.shifts.reduce((total, shift) => total + shift.payRate, 0)}
+                  {job.shifts.reduce((total, shift) => total + shift.payRate, 0)}
                   </td>
                   <td className="py-6 px-8 truncate text-center text-[16px] leading-[20px] font-normal">
-                    {job?.jobStatus}
+                    {job.jobStatus}
                   </td>
                   <td className="py-6 px-8 truncate text-center text-[16px] leading-[20px] font-semibold">
-                  {job?.shifts.reduce((total, shift) => total + shift.totalWage, 0)}
+                  {job.shifts.reduce((total, shift) => total + shift.totalWage, 0)}
                     {isJobMenuOpen === index && (
                       <div className="absolute top-[30%] right-12 mt-1 w-fit bg-white shadow-md border border-gray-300 rounded-md z-10">
                         <button
