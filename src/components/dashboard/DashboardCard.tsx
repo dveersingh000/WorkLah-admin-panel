@@ -35,6 +35,18 @@ const DashboardCard: React.FC<DashboardCardProps> = ({
           navigate('/jobs/job-management')
       } else if (title === "Activated Hustle Heroes"){
         navigate('/hustle-heroes')
+    } else if (title === "Current Headcount Fulfilment"){
+        navigate('/jobs/job-management')
+    } else if (title === "Pending Verifications"){
+        navigate('/hustle-heroes')
+    } else if (title === "Pending Wages Transfer"){
+        navigate('/payments')
+    } else if (title === "No Show"){
+        navigate('/hustle-heroes')
+    } else if (title === "Outstanding Payment"){
+        navigate('/payments')
+    } else if (title === "Verified Hustle Heroes"){
+        navigate('/hustle-heroes')
     }
   }
 

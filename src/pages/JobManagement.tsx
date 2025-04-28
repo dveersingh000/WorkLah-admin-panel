@@ -416,7 +416,7 @@ const JobManagement = () => {
           </div>
           <div className="rounded-lg flex flex-col items-center">
             <h2 className="text-[48px] leading-[60px] font-medium text-[#0099ff]">
-              {totalData.averageAttendanceRate}
+              {totalData.currentFulfilmentRate}
             </h2>
             <p className="text-[20px] leading-[25px] font-medium text-[#4c4c4c]">
               Current Fulfilment Rate
@@ -576,9 +576,12 @@ const JobManagement = () => {
                     className="border-b border-gray-300"
                   >
                     {/* Job Name & ID */}
-                    <td className="p-4 text-left truncate border-l border-gray-300">
+                    <td
+                      className="p-4 text-left truncate border-l border-gray-300 cursor-pointer"
+                      onClick={() => handleActionClick("View", row._id)} // 👈 added click
+                    >
                       <div className={`${getBorderColor(row.jobStatus)} pl-2`}>
-                        <div className="font-medium">
+                        <div className="font-medium text-blue-600 hover:underline">
                           {row.jobName || "N/A"}
                         </div>
                         <div className="text-sm text-gray-500">
@@ -586,6 +589,7 @@ const JobManagement = () => {
                         </div>
                       </div>
                     </td>
+
                     {/* Job Date */}
                     <td className="p-4 text-center truncate border-l border-gray-300">
                       {row.date ? formatDate(row.date) : "N/A"}
@@ -599,13 +603,13 @@ const JobManagement = () => {
                       <div className="flex flex-col gap-2">
                         {row.shifts?.length > 0
                           ? row.shifts.map((shift, i) => (
-                              <div
-                                key={i}
-                                className="bg-[#048BE1] px-2.5 py-1 rounded-full font-medium text-white"
-                              >
-                                {`${shift.startTime} - ${shift.endTime}`}
-                              </div>
-                            ))
+                            <div
+                              key={i}
+                              className="bg-[#048BE1] px-2.5 py-1 rounded-full font-medium text-white"
+                            >
+                              {`${shift.startTime} - ${shift.endTime}`}
+                            </div>
+                          ))
                           : "N/A"}
                       </div>
                     </td>
@@ -613,11 +617,11 @@ const JobManagement = () => {
                     <td className="p-4 text-center truncate border-l border-gray-300">
                       {row.shifts?.length > 0
                         ? row.shifts.map((shift, i) => (
-                            <div key={i}>
-                              {convertIdToFourDigits(shift.shiftId)}
-                              <br />
-                            </div>
-                          ))
+                          <div key={i}>
+                            {convertIdToFourDigits(shift.shiftId)}
+                            <br />
+                          </div>
+                        ))
                         : "N/A"}
                     </td>
 
@@ -625,9 +629,8 @@ const JobManagement = () => {
                     <td className="p-4 text-left truncate border-l border-gray-300">
                       <img
                         className="w-8 h-8 inline-block mr-2"
-                        src={`${companyImage}${
-                          row.employer?.logo || "/static/company.png"
-                        }`}
+                        src={`${companyImage}${row.employer?.logo || "/static/company.png"
+                          }`}
                         alt="Company Logo"
                       />
                       {row.employer?.name || "N/A"}
@@ -636,9 +639,8 @@ const JobManagement = () => {
                     <td className="p-4 text-left truncate border-l border-gray-300">
                       <img
                         className="w-8 h-8 inline-block mr-2"
-                        src={`${companyImage}${
-                          row.outlet?.logo || "/static/company.png"
-                        }`}
+                        src={`${companyImage}${row.outlet?.logo || "/static/company.png"
+                          }`}
                         alt="Company Logo"
                       />
                       {row.outlet?.name || "N/A"}
@@ -653,24 +655,24 @@ const JobManagement = () => {
                       <div className="flex flex-col gap-2">
                         {row.shifts?.length > 0
                           ? row.shifts.map((shift, i) => {
-                              const breakParts = shift.breakIncluded.split(" "); // Splitting "1 Hrs Paid" into ["1", "Hrs", "Paid"]
-                              const breakType = breakParts[2] || ""; // Extracting "Paid" or "Unpaid"
+                            const breakParts = shift.breakIncluded.split(" "); // Splitting "1 Hrs Paid" into ["1", "Hrs", "Paid"]
+                            const breakType = breakParts[2] || ""; // Extracting "Paid" or "Unpaid"
 
-                              return (
-                                <div key={i} className="font-medium">
-                                  <span className="text-black">{`${breakParts[0]} ${breakParts[1]} `}</span>
-                                  <span
-                                    className={
-                                      breakType === "Paid"
-                                        ? "text-green-600"
-                                        : "text-red-600"
-                                    }
-                                  >
-                                    {breakType}
-                                  </span>
-                                </div>
-                              );
-                            })
+                            return (
+                              <div key={i} className="font-medium">
+                                <span className="text-black">{`${breakParts[0]} ${breakParts[1]} `}</span>
+                                <span
+                                  className={
+                                    breakType === "Paid"
+                                      ? "text-green-600"
+                                      : "text-red-600"
+                                  }
+                                >
+                                  {breakType}
+                                </span>
+                              </div>
+                            );
+                          })
                           : "N/A"}
                       </div>
                     </td>
@@ -768,11 +770,10 @@ const JobManagement = () => {
               <button
                 key={pageNumber}
                 onClick={() => handlePageChange(pageNumber)}
-                className={`px-3 py-1 border rounded-md ${
-                  pageNumber === currentPage
+                className={`px-3 py-1 border rounded-md ${pageNumber === currentPage
                     ? "border-blue-500 bg-blue-500 text-white"
                     : "border-gray-300 bg-white hover:bg-gray-50"
-                }`}
+                  }`}
               >
                 {pageNumber}
               </button>

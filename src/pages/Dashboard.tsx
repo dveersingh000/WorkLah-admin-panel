@@ -79,7 +79,7 @@ const Dashboard = () => {
     },
     {
       title: "Current Headcount Fulfilment",
-      value: dashboardData.vacancies,
+      value: `${dashboardData.vacanciesFilled}/${dashboardData.vacancies}`,
       chartData: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       chartColor: ["#4D5578", "#FFFFFF"],
       icon: "/assets/icons/group3.svg",
