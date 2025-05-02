@@ -41,6 +41,7 @@ import JobHistory from "../../components/employerDetail/JobHistory";
 import WorkHistory from "../../components/employerDetail/WorkHistory";
 import { axiosInstance } from "../../lib/authInstances";
 import uploadImageOnCloudinary from "../../utils/images/imageUpload";
+import toast from "react-hot-toast";
 
 interface PersonalDetails {
   EWalletAmount: string;
@@ -91,7 +92,11 @@ export default function EditCandidateProfile() {
     finFront: null,
     finBack: null,
     plocImage: null,
-    studentCard: null,
+    studentCard: null, 
+    plocExpiry:"",
+    studentId:"",
+    nricNo:""
+   
   });
 
   const [activeTab, setActiveTab] = useState("jobHistory");
@@ -183,15 +188,28 @@ export default function EditCandidateProfile() {
     }
   }, []);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
+  const handleChange = (e) => {
+    //debugger
     const { name, value } = e.target;
+  
+    if (name === 'plocExpiry') {
+      const selectedDate = new Date(value);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Normalize to midnight
+  
+      if (selectedDate < today) {
+       alert("this date is not valid");
+        return; // Stop here if invalid
+      }
+    }
+  
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
   };
+  
+  
 
   useEffect(() => {
     // debugger;
@@ -223,12 +241,42 @@ export default function EditCandidateProfile() {
           finBack: candidateProfile?.finBack || null,
           plocImage: candidateProfile?.plocImage || null,
           studentCard: candidateProfile?.studentCard || null,
+          plocExpiry:candidateProfile?.plocExpiry||"",
+          studentId:candidateProfile?.studentId||"",
+          nricNo:candidateProfile?.nricNo||"",
         });
       })
       .catch((error) => {
         console.error("Error fetching employee:", error);
       });
   }, []);
+
+  const InputForRole = {
+    "Singaporean/Permanent Resident": [
+      "nricFront",
+      "nricBack",
+      "finFront",
+      "finBack",
+      "selfie",
+      "foodHygieneCert"
+    ],
+    "Long Term Visit Pass Holder": [
+      "plocImage",
+      "selfie",
+      "foodHygieneCert"
+    ],
+    "Student Pass": [
+     "studentCard",
+    "foodHygieneCert",
+    "selfie",
+     
+    ],
+    "No Valid Work Pass": [
+      "selfie",
+      "foodHygieneCert"
+    ]
+  };
+  
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -252,6 +300,10 @@ export default function EditCandidateProfile() {
       finBack: formData.finBack,
       plocImage: formData.plocImage,
       studentCard: formData.studentCard,
+      plocExpiry:formData.plocExpiry,
+      studentId:formData.studentId,
+      nricNo:formData.nricNo
+
       
     };
     console.log("submit", formDataToSend);
@@ -648,49 +700,90 @@ export default function EditCandidateProfile() {
               </div>
 
               {/* upload NRIC Front */}
-             {
-              loading===false?
-              <>
-               {[
-                "nricFront",
-                "nricBack",
-                "finFront",
-                "finBack",
-                "plocImage",
-                "studentCard",
-                "selfie",
-                "foodHygieneCert"
-              ].map((doc) => (
-                <div key={doc} className="mb-4">
-                  <label className="block text-sm mb-2 capitalize">
-                    Upload {doc}
-                  </label>
+              {loading === false ? (
+                <>
+                  {InputForRole[formData.workPassStatus]?.map((doc, index) => (
+                    <div key={doc} className="mb-4">
+                      <label className="block text-sm mb-2 capitalize">
+                        Upload {doc}
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="file"
+                          accept="image/*,application/pdf,text/plain"
+                          className="w-full border border-gray-300 rounded-lg p-3"
+                          onChange={(e) => getImageUrl(e, doc)}
+                        />
+
+                        {formData[doc] != null && (
+                          <img
+                            src={formData[doc]}
+                            alt={`${doc} preview`}
+                            className="mt-2 rounded-md max-h-40 object-contain"
+                          />
+                        )}
+
+                        <PencilIcon className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                      </div>
+                    </div>
+                  ))}
+                </>
+              ) : (
+                <>
+                  <p>loading....</p>
+                </>
+              )}
+
+              {formData.workPassStatus === "Long Term Visit Pass Holder" && (
+                <div>
+                  <label className="block text-sm mb-2">ploc expiry date</label>
                   <div className="relative">
                     <input
-                      type="file"
-                      accept="image/*,application/pdf,text/plain"
-                      className="w-full border border-gray-300 rounded-lg p-3"
-                      onChange={(e) => getImageUrl(e, doc)}
+                      type="date"
+                      name="plocExpiry"
+                      value={formData.plocExpiry}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border rounded-lg pr-10"
+                      required
                     />
-
-                    {formData[doc] != null && (
-                      <img
-                        src={formData[doc]}
-                        alt={`${doc} preview`}
-                        className="mt-2 rounded-md max-h-40 object-contain"
-                      />
-                    )}
-
                     <PencilIcon className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
                   </div>
                 </div>
-              ))}
-              </>
-              :
-              <>
-              <p>loading....</p>
-              </>
-             }
+              )}
+
+              {formData.workPassStatus === "Student Pass" && (
+                <div>
+                  <label className="block text-sm mb-2">StudentID</label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      name="studentId"
+                      value={formData.studentId}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border rounded-lg pr-10"
+                      required
+                    />
+                    <PencilIcon className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  </div>
+                </div>
+              )}
+
+              {formData.workPassStatus === "Singaporean/Permanent Resident" && (
+                <div>
+                  <label className="block text-sm mb-2">NRIC/FIN no.</label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      name="nricNo"
+                      value={formData.nricNo}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border rounded-lg pr-10"
+                      required
+                    />
+                    <PencilIcon className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  </div>
+                </div>
+              )}
 
               {/* <div>
                 <label className="block text-sm mb-2"></label>
