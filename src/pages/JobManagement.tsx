@@ -58,38 +58,20 @@ interface JobRow {
 
 const JobManagement = () => {
   const [currentPage, setCurrentPage] = useState(1);
-  const tabs = ["Jobs-Today","Active" , "Upcoming" , "Cancelled" , "Completed"];
-  // const tabData = {
-  //   "Tab 1": [
-  //     { name: "John", age: 28, role: "Developer" },
-  //     { name: "Sarah", age: 32, role: "Designer" },
-  //   ],
-  //   "Tab 2": [
-  //     { name: "Alice", age: 24, role: "Manager" },
-  //     { name: "Tom", age: 29, role: "Tester" },
-  //   ],
-  //   "Tab 3": [
-  //     { name: "Emma", age: 30, role: "HR" },
-  //     { name: "Noah", age: 27, role: "Intern" },
-  //   ],
-  //   "Tab 4": [
-  //     { name: "Olivia", age: 26, role: "Sales" },
-  //     { name: "Liam", age: 35, role: "Marketing" },
-  //   ],
-  // };
+  const tabs = ["All Jobs", "Jobs-Today", "Active", "Completed", "Cancelled"];
+
 
   const [queryParams, setQueryParams] = useState({
     search: "",
-    status: "Jobs-Today",
+    status: "",
     location: "",
     page: 1,
     limit: 5,
-    sortOrder: "desc",
+    sortOrder: "asc",
   });
   const [isPopupOpen, setIsPopupOpen] = useState<number | null>(null);
   const [jobsData, setJobsData] = useState([]);
   const [totalData, setTotalData] = useState([]);
-  console.log("jobsData", totalData);
   const [startDate, setStartDate] = useState(new Date("2024-01-01"));
   const [endDate, setEndDate] = useState(new Date("2024-12-31"));
   const [isLimitPopupOpen, setIsLimitPopupOpen] = useState(false);
@@ -101,7 +83,7 @@ const JobManagement = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedOption, setSelectedOption] = useState("desc");
   const [selectedEmployers, setSelectedEmployers] = useState<Employer[]>([]);
-  const [activeTab, setActiveTab] = useState("Jobs-Today")
+  const [activeTab, setActiveTab] = useState("All Jobs")
   console.log("selectedEmployers", selectedEmployers);
 
   const options = [
@@ -260,7 +242,7 @@ const JobManagement = () => {
   // console.log(jobsData);
   useEffect(() => {
     fetchJobDetails(queryParams);
-  }, [queryParams, selectedEmployers,activeTab]);
+  }, [queryParams, selectedEmployers, activeTab]);
 
   const handlePopupToggle = (index: number) => {
     setIsPopupOpen(isPopupOpen === index ? null : index);
@@ -445,36 +427,6 @@ const JobManagement = () => {
           </div>
         </div>
 
-        {/* Job Types Filter */}
-        {/* <div className="flex gap-6 mb-6 text-sm bg-[#f3f3f3] justify-between items-center rounded-2xl py-4 px-8">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-4">
-              <p className="w-[6px] h-8  bg-green-500 "></p>
-              <p className="text-[20px] leading-[24px] font-medium ">
-                High Demand Jobs
-              </p>
-            </div>
-            <Info className="w- h-8 cursor-pointer" />
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-4">
-              <p className="w-[6px] h-8  bg-orange-500 "></p>
-              <p className="text-[20px] leading-[24px] font-medium ">
-              Soon-to-Start Jobs
-              </p>
-            </div>
-            <Info className="w- h-8 cursor-pointer" />
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-4">
-              <p className="w-[6px] h-8 bg-red-500 "></p>
-              <p className="text-[20px] leading-[24px] font-medium ">
-                High No Show Jobs
-              </p>
-            </div>
-            <Info className="w- h-8 cursor-pointer" />
-          </div>
-        </div> */}
 
         {/*Filter */}
         <div className="flex items-center justify-between py-2">
@@ -541,52 +493,44 @@ const JobManagement = () => {
 
 
 
-             {/*Tabs */}
+        {/*Tabs */}
         <div className="flex flex-wrap justify-center gap-2 mb-4">
           {tabs.map((tab) => (
             <button
               key={tab}
-              onClick={() =>{
-                setActiveTab(tab)
-                setQueryParams((prev) => ({
-                 ...prev,
-                 status:tab
-               }));
-              }
+              onClick={() => {
+                setActiveTab(tab);
+                let newStatus = "";
                 
+                if (tab === "All Jobs") {
+                  newStatus = ""; // no filter
+                } else if (tab === "Jobs-Today") {
+                  newStatus = "Today";
+                } else if (tab === "Active") {
+                  newStatus = "Active"; // manually merge Active + Upcoming
+                } else if (tab === "Completed") {
+                  newStatus = "Completed";
+                } else if (tab === "Cancelled") {
+                  newStatus = "Cancelled";
                 }
-              className={`px-4 py-2 rounded-full text-sm font-medium transition ${
-                activeTab === tab
+              
+                setQueryParams((prev) => ({
+                  ...prev,
+                  status: newStatus,
+                  page: 1,
+                }));
+              }}
+              
+              className={`px-4 py-2 rounded-full text-sm font-medium transition ${activeTab === tab
                   ? "bg-blue-600 text-white"
                   : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
+                }`}
             >
               {tab}
             </button>
           ))}
         </div>
 
-
-        {/* <div className="overflow-x-auto">
-        <table className="min-w-full table-auto border border-gray-300 rounded-md">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="text-left px-4 py-2 border">Name</th>
-              <th className="text-left px-4 py-2 border">Age</th>
-              <th className="text-left px-4 py-2 border">Role</th>
-            </tr>
-          </thead>
-          <tbody>
-            {tabData[activeTab].map((item, idx) => (
-              <tr key={idx} className="border-t">
-                <td className="px-4 py-2 border">{item.name}</td>
-                <td className="px-4 py-2 border">{item.age}</td>
-                <td className="px-4 py-2 border">{item.role}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        </div> */}
 
         {/* Jobs Table */}
         <div
@@ -819,690 +763,6 @@ const JobManagement = () => {
           </table>
         </div>
 
-        <div
-          ref={scrollContainerRef}
-          className="w-full overflow-x-auto no-scrollbar"
-        >
-          <table className="table-auto w-full border-collapse relative h-48">
-            <thead>
-              <tr className="bg-[#EDF8FF] ">
-                <th className="p-4 text-center text-sm truncate font-medium text-gray-500 whitespace-nowrap rounded-l-full">
-                  Job Roles
-                </th>
-                <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
-                  Job Date
-                </th>
-                <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
-                  Number of shifts
-                </th>
-                <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
-                  Shift Timings
-                </th>
-                <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
-                  Shift ID
-                </th>
-                <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
-                  Employer
-                </th>
-                <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
-                  Outlet
-                </th>
-                <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
-                  Breaks
-                </th>
-                <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
-                  Total Duration
-                </th>
-                <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
-                  Vacancy Users
-                </th>
-                <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
-                  Standby Users
-                </th>
-                <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
-                  Total wage
-                </th>
-                <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
-                  Job Status
-                </th>
-                <th className="p-4 text-center"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {jobsData.length > 0 ? (
-                jobsData.map((row, index) => (
-                  <tr
-                    key={row._id || index}
-                    className="border-b border-gray-300"
-                  >
-                    {/* Job Name & ID */}
-                    <td className="p-4 text-left truncate border-l border-gray-300">
-                      <div className={`${getBorderColor(row.jobStatus)} pl-2`}>
-                        <div className="font-medium">
-                          {row.jobName || "N/A"}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          Job Id: #{convertIdToFourDigits(row._id)}
-                        </div>
-                      </div>
-                    </td>
-                    {/* Job Date */}
-                    <td className="p-4 text-center truncate border-l border-gray-300">
-                      {row.date ? formatDate(row.date) : "N/A"}
-                    </td>
-                    {/* Number of Shifts */}
-                    <td className="p-4 text-center truncate border-l border-gray-300">
-                      {row.shifts?.length || "0"}
-                    </td>
-                    {/* Shift Timings */}
-                    <td className="p-4 text-center truncate border-l border-gray-300">
-                      <div className="flex flex-col gap-2">
-                        {row.shifts?.length > 0
-                          ? row.shifts.map((shift, i) => (
-                              <div
-                                key={i}
-                                className="bg-[#048BE1] px-2.5 py-1 rounded-full font-medium text-white"
-                              >
-                                {`${shift.startTime} - ${shift.endTime}`}
-                              </div>
-                            ))
-                          : "N/A"}
-                      </div>
-                    </td>
-                    {/* Shift ID */}
-                    <td className="p-4 text-center truncate border-l border-gray-300">
-                      {row.shifts?.length > 0
-                        ? row.shifts.map((shift, i) => (
-                            <div key={i}>
-                              {convertIdToFourDigits(shift.shiftId)}
-                              <br />
-                            </div>
-                          ))
-                        : "N/A"}
-                    </td>
-
-                    {/* Employer */}
-                    <td className="p-4 text-left truncate border-l border-gray-300">
-                      <img
-                        className="w-8 h-8 inline-block mr-2"
-                        src={`${companyImage}${
-                          row.employer?.logo || "/static/company.png"
-                        }`}
-                        alt="Company Logo"
-                      />
-                      {row.employer?.name || "N/A"}
-                    </td>
-                    {/* Outlet */}
-                    <td className="p-4 text-left truncate border-l border-gray-300">
-                      <img
-                        className="w-8 h-8 inline-block mr-2"
-                        src={`${companyImage}${
-                          row.outlet?.logo || "/static/company.png"
-                        }`}
-                        alt="Company Logo"
-                      />
-                      {row.outlet?.name || "N/A"}
-                      <br />
-                      <span className="text-xs">
-                        {row.outlet?.location || "N/A"}
-                      </span>
-                    </td>
-                    {/* Breaks */}
-                    {/* Breaks */}
-                    <td className="p-4 text-center truncate border-l border-gray-300">
-                      <div className="flex flex-col gap-2">
-                        {row.shifts?.length > 0
-                          ? row.shifts.map((shift, i) => {
-                              const breakParts = shift.breakIncluded.split(" "); // Splitting "1 Hrs Paid" into ["1", "Hrs", "Paid"]
-                              const breakType = breakParts[2] || ""; // Extracting "Paid" or "Unpaid"
-
-                              return (
-                                <div key={i} className="font-medium">
-                                  <span className="text-black">{`${breakParts[0]} ${breakParts[1]} `}</span>
-                                  <span
-                                    className={
-                                      breakType === "Paid"
-                                        ? "text-green-600"
-                                        : "text-red-600"
-                                    }
-                                  >
-                                    {breakType}
-                                  </span>
-                                </div>
-                              );
-                            })
-                          : "N/A"}
-                      </div>
-                    </td>
-
-                    {/* Total Duration */}
-                    <td className="p-4 text-center truncate border-l border-gray-300">
-                      {row.shifts?.[0]?.duration || "N/A"}
-                    </td>
-                    {/* Vacancy Users */}
-                    <td className="p-4 text-center truncate border-l border-gray-300">
-                      {row.vacancyUsers || "0"}
-                    </td>
-                    {/* Standby Users */}
-                    <td className="p-4 text-center truncate border-l border-gray-300">
-                      {row.standbyUsers || "0"}
-                    </td>
-                    {/* Total Wage */}
-                    <td className="p-4 text-center truncate border-l border-gray-300">
-                      {row.totalWage || "N/A"}
-                    </td>
-                    {/* Job Status */}
-                    <td className="p-4 text-center truncate border-l border-gray-300">
-                      <span
-                        className={`px-2.5 py-1 rounded-full text-sm font-medium ${getStatusColor(
-                          row.jobStatus
-                        )}`}
-                      >
-                        {row.jobStatus || "N/A"}
-                      </span>
-                    </td>
-                    {/* Actions */}
-                    <td className="p-4 text-center truncate border-l border-gray-300">
-                      <button
-                        className="p-2 hover:bg-gray-100 rounded-full"
-                        onClick={() => handlePopupToggle(index)}
-                      >
-                        <MoreVertical className="h-4 w-4" />
-                      </button>
-                      {isPopupOpen === index && (
-                        <div className="absolute top-[30%] right-14 mt-1 w-32 bg-white shadow-md border border-gray-300 rounded-md z-10">
-                          <button
-                            className="flex items-center gap-2 p-2 w-full text-left text-gray-700 hover:bg-gray-100"
-                            onClick={() => handleActionClick("View", row._id)}
-                          >
-                            <Eye size={16} /> View
-                          </button>
-                          <button
-                            className="flex items-center gap-2 p-2 w-full text-left text-gray-700 hover:bg-gray-100"
-                            onClick={() => handleActionClick("Modify", row._id)}
-                          >
-                            <Edit size={16} /> Modify
-                          </button>
-                          <button
-                            className="flex items-center gap-2 p-2 w-full text-left text-[#E34E30] hover:bg-gray-100"
-                            onClick={() =>
-                              handleActionClick("Cancel Job", row._id)
-                            }
-                          >
-                            <Ban size={16} color="#E34E30" /> Cancel Job
-                          </button>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="14" className="text-center py-4">
-                    No jobs available
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        <div
-          ref={scrollContainerRef}
-          className="w-full overflow-x-auto no-scrollbar"
-        >
-          <table className="table-auto w-full border-collapse relative h-48">
-            <thead>
-              <tr className="bg-[#EDF8FF] ">
-                <th className="p-4 text-center text-sm truncate font-medium text-gray-500 whitespace-nowrap rounded-l-full">
-                  Job Roles
-                </th>
-                <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
-                  Job Date
-                </th>
-                <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
-                  Number of shifts
-                </th>
-                <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
-                  Shift Timings
-                </th>
-                <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
-                  Shift ID
-                </th>
-                <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
-                  Employer
-                </th>
-                <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
-                  Outlet
-                </th>
-                <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
-                  Breaks
-                </th>
-                <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
-                  Total Duration
-                </th>
-                <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
-                  Vacancy Users
-                </th>
-                <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
-                  Standby Users
-                </th>
-                <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
-                  Total wage
-                </th>
-                <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
-                  Job Status
-                </th>
-                <th className="p-4 text-center"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {jobsData.length > 0 ? (
-                jobsData.map((row, index) => (
-                  <tr
-                    key={row._id || index}
-                    className="border-b border-gray-300"
-                  >
-                    {/* Job Name & ID */}
-                    <td className="p-4 text-left truncate border-l border-gray-300">
-                      <div className={`${getBorderColor(row.jobStatus)} pl-2`}>
-                        <div className="font-medium">
-                          {row.jobName || "N/A"}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          Job Id: #{convertIdToFourDigits(row._id)}
-                        </div>
-                      </div>
-                    </td>
-                    {/* Job Date */}
-                    <td className="p-4 text-center truncate border-l border-gray-300">
-                      {row.date ? formatDate(row.date) : "N/A"}
-                    </td>
-                    {/* Number of Shifts */}
-                    <td className="p-4 text-center truncate border-l border-gray-300">
-                      {row.shifts?.length || "0"}
-                    </td>
-                    {/* Shift Timings */}
-                    <td className="p-4 text-center truncate border-l border-gray-300">
-                      <div className="flex flex-col gap-2">
-                        {row.shifts?.length > 0
-                          ? row.shifts.map((shift, i) => (
-                              <div
-                                key={i}
-                                className="bg-[#048BE1] px-2.5 py-1 rounded-full font-medium text-white"
-                              >
-                                {`${shift.startTime} - ${shift.endTime}`}
-                              </div>
-                            ))
-                          : "N/A"}
-                      </div>
-                    </td>
-                    {/* Shift ID */}
-                    <td className="p-4 text-center truncate border-l border-gray-300">
-                      {row.shifts?.length > 0
-                        ? row.shifts.map((shift, i) => (
-                            <div key={i}>
-                              {convertIdToFourDigits(shift.shiftId)}
-                              <br />
-                            </div>
-                          ))
-                        : "N/A"}
-                    </td>
-
-                    {/* Employer */}
-                    <td className="p-4 text-left truncate border-l border-gray-300">
-                      <img
-                        className="w-8 h-8 inline-block mr-2"
-                        src={`${companyImage}${
-                          row.employer?.logo || "/static/company.png"
-                        }`}
-                        alt="Company Logo"
-                      />
-                      {row.employer?.name || "N/A"}
-                    </td>
-                    {/* Outlet */}
-                    <td className="p-4 text-left truncate border-l border-gray-300">
-                      <img
-                        className="w-8 h-8 inline-block mr-2"
-                        src={`${companyImage}${
-                          row.outlet?.logo || "/static/company.png"
-                        }`}
-                        alt="Company Logo"
-                      />
-                      {row.outlet?.name || "N/A"}
-                      <br />
-                      <span className="text-xs">
-                        {row.outlet?.location || "N/A"}
-                      </span>
-                    </td>
-                    {/* Breaks */}
-                    {/* Breaks */}
-                    <td className="p-4 text-center truncate border-l border-gray-300">
-                      <div className="flex flex-col gap-2">
-                        {row.shifts?.length > 0
-                          ? row.shifts.map((shift, i) => {
-                              const breakParts = shift.breakIncluded.split(" "); // Splitting "1 Hrs Paid" into ["1", "Hrs", "Paid"]
-                              const breakType = breakParts[2] || ""; // Extracting "Paid" or "Unpaid"
-
-                              return (
-                                <div key={i} className="font-medium">
-                                  <span className="text-black">{`${breakParts[0]} ${breakParts[1]} `}</span>
-                                  <span
-                                    className={
-                                      breakType === "Paid"
-                                        ? "text-green-600"
-                                        : "text-red-600"
-                                    }
-                                  >
-                                    {breakType}
-                                  </span>
-                                </div>
-                              );
-                            })
-                          : "N/A"}
-                      </div>
-                    </td>
-
-                    {/* Total Duration */}
-                    <td className="p-4 text-center truncate border-l border-gray-300">
-                      {row.shifts?.[0]?.duration || "N/A"}
-                    </td>
-                    {/* Vacancy Users */}
-                    <td className="p-4 text-center truncate border-l border-gray-300">
-                      {row.vacancyUsers || "0"}
-                    </td>
-                    {/* Standby Users */}
-                    <td className="p-4 text-center truncate border-l border-gray-300">
-                      {row.standbyUsers || "0"}
-                    </td>
-                    {/* Total Wage */}
-                    <td className="p-4 text-center truncate border-l border-gray-300">
-                      {row.totalWage || "N/A"}
-                    </td>
-                    {/* Job Status */}
-                    <td className="p-4 text-center truncate border-l border-gray-300">
-                      <span
-                        className={`px-2.5 py-1 rounded-full text-sm font-medium ${getStatusColor(
-                          row.jobStatus
-                        )}`}
-                      >
-                        {row.jobStatus || "N/A"}
-                      </span>
-                    </td>
-                    {/* Actions */}
-                    <td className="p-4 text-center truncate border-l border-gray-300">
-                      <button
-                        className="p-2 hover:bg-gray-100 rounded-full"
-                        onClick={() => handlePopupToggle(index)}
-                      >
-                        <MoreVertical className="h-4 w-4" />
-                      </button>
-                      {isPopupOpen === index && (
-                        <div className="absolute top-[30%] right-14 mt-1 w-32 bg-white shadow-md border border-gray-300 rounded-md z-10">
-                          <button
-                            className="flex items-center gap-2 p-2 w-full text-left text-gray-700 hover:bg-gray-100"
-                            onClick={() => handleActionClick("View", row._id)}
-                          >
-                            <Eye size={16} /> View
-                          </button>
-                          <button
-                            className="flex items-center gap-2 p-2 w-full text-left text-gray-700 hover:bg-gray-100"
-                            onClick={() => handleActionClick("Modify", row._id)}
-                          >
-                            <Edit size={16} /> Modify
-                          </button>
-                          <button
-                            className="flex items-center gap-2 p-2 w-full text-left text-[#E34E30] hover:bg-gray-100"
-                            onClick={() =>
-                              handleActionClick("Cancel Job", row._id)
-                            }
-                          >
-                            <Ban size={16} color="#E34E30" /> Cancel Job
-                          </button>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="14" className="text-center py-4">
-                    No jobs available
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        <div
-          ref={scrollContainerRef}
-          className="w-full overflow-x-auto no-scrollbar"
-        >
-          <table className="table-auto w-full border-collapse relative h-48">
-            <thead>
-              <tr className="bg-[#EDF8FF] ">
-                <th className="p-4 text-center text-sm truncate font-medium text-gray-500 whitespace-nowrap rounded-l-full">
-                  Job Roles
-                </th>
-                <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
-                  Job Date
-                </th>
-                <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
-                  Number of shifts
-                </th>
-                <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
-                  Shift Timings
-                </th>
-                <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
-                  Shift ID
-                </th>
-                <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
-                  Employer
-                </th>
-                <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
-                  Outlet
-                </th>
-                <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
-                  Breaks
-                </th>
-                <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
-                  Total Duration
-                </th>
-                <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
-                  Vacancy Users
-                </th>
-                <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
-                  Standby Users
-                </th>
-                <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
-                  Total wage
-                </th>
-                <th className="p-4 text-center text-sm truncate font-medium text-gray-500">
-                  Job Status
-                </th>
-                <th className="p-4 text-center"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {jobsData.length > 0 ? (
-                jobsData.map((row, index) => (
-                  <tr
-                    key={row._id || index}
-                    className="border-b border-gray-300"
-                  >
-                    {/* Job Name & ID */}
-                    <td className="p-4 text-left truncate border-l border-gray-300">
-                      <div className={`${getBorderColor(row.jobStatus)} pl-2`}>
-                        <div className="font-medium">
-                          {row.jobName || "N/A"}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          Job Id: #{convertIdToFourDigits(row._id)}
-                        </div>
-                      </div>
-                    </td>
-                    {/* Job Date */}
-                    <td className="p-4 text-center truncate border-l border-gray-300">
-                      {row.date ? formatDate(row.date) : "N/A"}
-                    </td>
-                    {/* Number of Shifts */}
-                    <td className="p-4 text-center truncate border-l border-gray-300">
-                      {row.shifts?.length || "0"}
-                    </td>
-                    {/* Shift Timings */}
-                    <td className="p-4 text-center truncate border-l border-gray-300">
-                      <div className="flex flex-col gap-2">
-                        {row.shifts?.length > 0
-                          ? row.shifts.map((shift, i) => (
-                              <div
-                                key={i}
-                                className="bg-[#048BE1] px-2.5 py-1 rounded-full font-medium text-white"
-                              >
-                                {`${shift.startTime} - ${shift.endTime}`}
-                              </div>
-                            ))
-                          : "N/A"}
-                      </div>
-                    </td>
-                    {/* Shift ID */}
-                    <td className="p-4 text-center truncate border-l border-gray-300">
-                      {row.shifts?.length > 0
-                        ? row.shifts.map((shift, i) => (
-                            <div key={i}>
-                              {convertIdToFourDigits(shift.shiftId)}
-                              <br />
-                            </div>
-                          ))
-                        : "N/A"}
-                    </td>
-
-                    {/* Employer */}
-                    <td className="p-4 text-left truncate border-l border-gray-300">
-                      <img
-                        className="w-8 h-8 inline-block mr-2"
-                        src={`${companyImage}${
-                          row.employer?.logo || "/static/company.png"
-                        }`}
-                        alt="Company Logo"
-                      />
-                      {row.employer?.name || "N/A"}
-                    </td>
-                    {/* Outlet */}
-                    <td className="p-4 text-left truncate border-l border-gray-300">
-                      <img
-                        className="w-8 h-8 inline-block mr-2"
-                        src={`${companyImage}${
-                          row.outlet?.logo || "/static/company.png"
-                        }`}
-                        alt="Company Logo"
-                      />
-                      {row.outlet?.name || "N/A"}
-                      <br />
-                      <span className="text-xs">
-                        {row.outlet?.location || "N/A"}
-                      </span>
-                    </td>
-                    {/* Breaks */}
-                    {/* Breaks */}
-                    <td className="p-4 text-center truncate border-l border-gray-300">
-                      <div className="flex flex-col gap-2">
-                        {row.shifts?.length > 0
-                          ? row.shifts.map((shift, i) => {
-                              const breakParts = shift.breakIncluded.split(" "); // Splitting "1 Hrs Paid" into ["1", "Hrs", "Paid"]
-                              const breakType = breakParts[2] || ""; // Extracting "Paid" or "Unpaid"
-
-                              return (
-                                <div key={i} className="font-medium">
-                                  <span className="text-black">{`${breakParts[0]} ${breakParts[1]} `}</span>
-                                  <span
-                                    className={
-                                      breakType === "Paid"
-                                        ? "text-green-600"
-                                        : "text-red-600"
-                                    }
-                                  >
-                                    {breakType}
-                                  </span>
-                                </div>
-                              );
-                            })
-                          : "N/A"}
-                      </div>
-                    </td>
-
-                    {/* Total Duration */}
-                    <td className="p-4 text-center truncate border-l border-gray-300">
-                      {row.shifts?.[0]?.duration || "N/A"}
-                    </td>
-                    {/* Vacancy Users */}
-                    <td className="p-4 text-center truncate border-l border-gray-300">
-                      {row.vacancyUsers || "0"}
-                    </td>
-                    {/* Standby Users */}
-                    <td className="p-4 text-center truncate border-l border-gray-300">
-                      {row.standbyUsers || "0"}
-                    </td>
-                    {/* Total Wage */}
-                    <td className="p-4 text-center truncate border-l border-gray-300">
-                      {row.totalWage || "N/A"}
-                    </td>
-                    {/* Job Status */}
-                    <td className="p-4 text-center truncate border-l border-gray-300">
-                      <span
-                        className={`px-2.5 py-1 rounded-full text-sm font-medium ${getStatusColor(
-                          row.jobStatus
-                        )}`}
-                      >
-                        {row.jobStatus || "N/A"}
-                      </span>
-                    </td>
-                    {/* Actions */}
-                    <td className="p-4 text-center truncate border-l border-gray-300">
-                      <button
-                        className="p-2 hover:bg-gray-100 rounded-full"
-                        onClick={() => handlePopupToggle(index)}
-                      >
-                        <MoreVertical className="h-4 w-4" />
-                      </button>
-                      {isPopupOpen === index && (
-                        <div className="absolute top-[30%] right-14 mt-1 w-32 bg-white shadow-md border border-gray-300 rounded-md z-10">
-                          <button
-                            className="flex items-center gap-2 p-2 w-full text-left text-gray-700 hover:bg-gray-100"
-                            onClick={() => handleActionClick("View", row._id)}
-                          >
-                            <Eye size={16} /> View
-                          </button>
-                          <button
-                            className="flex items-center gap-2 p-2 w-full text-left text-gray-700 hover:bg-gray-100"
-                            onClick={() => handleActionClick("Modify", row._id)}
-                          >
-                            <Edit size={16} /> Modify
-                          </button>
-                          <button
-                            className="flex items-center gap-2 p-2 w-full text-left text-[#E34E30] hover:bg-gray-100"
-                            onClick={() =>
-                              handleActionClick("Cancel Job", row._id)
-                            }
-                          >
-                            <Ban size={16} color="#E34E30" /> Cancel Job
-                          </button>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="14" className="text-center py-4">
-                    No jobs available
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
         <CustomScrollbar
           scrollContainerRef={scrollContainerRef}
           totalSteps={3}
@@ -1525,8 +785,8 @@ const JobManagement = () => {
                 key={pageNumber}
                 onClick={() => handlePageChange(pageNumber)}
                 className={`px-3 py-1 border rounded-md ${pageNumber === currentPage
-                    ? "border-blue-500 bg-blue-500 text-white"
-                    : "border-gray-300 bg-white hover:bg-gray-50"
+                  ? "border-blue-500 bg-blue-500 text-white"
+                  : "border-gray-300 bg-white hover:bg-gray-50"
                   }`}
               >
                 {pageNumber}
