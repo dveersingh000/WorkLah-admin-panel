@@ -33,8 +33,19 @@ export const AuthProvider: React.FC<PropsWithChildren<{}>> = ({ children }) => {
 
   useEffect(() => {
     const checkAuth = async () => {
+     // debugger;
       try {
-        const response = await axiosInstance.get('/user/authenticated');
+        let token=localStorage.getItem('authToken');
+
+        if(!token){
+          setUser(null);
+        setIsAuthenticated(false);
+        setIsLoading(false);
+        return
+        }
+        const response = await axiosInstance.get('/user/authenticated/auth',{
+          headers:{authorization:`Bearer ${token}`}
+        });
         setUser(response.data);
         setIsAuthenticated(true);
       } catch (error) {
@@ -51,13 +62,14 @@ export const AuthProvider: React.FC<PropsWithChildren<{}>> = ({ children }) => {
 
   const login = async (email: string, password: string) => {
     try {
-      debugger
+      //debugger
       console.log("Trying login with:", { email, password });
       const response = await axiosInstance.post('/user/login', { email, password });
       setUser(response.data.user);
       const { token} = response.data; // Assuming API returns token and user data
       // Cookies.set('authToken', token); // Save token in cookies for 7 days
       Cookies.set('authToken', token, { expires: 7 }); // Save token in cookies for 7 days
+      localStorage.setItem('authToken',token);
       setIsAuthenticated(true);
       return true;
     } catch (error) {
