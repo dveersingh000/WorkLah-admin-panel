@@ -3,8 +3,8 @@ import Cookies from 'js-cookie';
 
 
 export const axiosInstance = axios.create({
-     //baseURL: "http://localhost:3000/api",
-     baseURL:"https://admin-panel-backend-imbt.onrender.com/api",
+     baseURL: "http://localhost:3000/api",
+     //baseURL:"https://admin-panel-backend-imbt.onrender.com/api",
     //baseURL:"https://worklah.onrender.com/api",
     headers: {
       "Content-Type": "application/json",

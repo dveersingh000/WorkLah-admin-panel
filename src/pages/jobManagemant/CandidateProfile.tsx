@@ -33,6 +33,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import JobHistory from "../../components/employerDetail/JobHistory";
 import WorkHistory from "../../components/employerDetail/WorkHistory";
 import { axiosInstance } from "../../lib/authInstances";
+import OverViewTable from "./OverViewTable";
 
 interface PersonalDetails {
   candidateId: string;
@@ -94,8 +95,9 @@ export default function ProfileDashboard() {
 
   const activeJobs: ActiveJobs = {
     job: userData?.activeJob?.jobName || "N/A",
-    ongoingShift: `${userData?.activeJob?.shiftStartTime || "N/A"} ---- ${userData?.activeJob?.shiftEndTime || "N/A"
-      }`,
+    ongoingShift: `${userData?.activeJob?.shiftStartTime || "N/A"} ---- ${
+      userData?.activeJob?.shiftEndTime || "N/A"
+    }`,
     clockedIn: userData?.activeJob?.clockedIn || "N/A",
     employer: userData?.activeJob?.employer || "N/A",
     duration: userData?.activeJob?.duration || "N/A",
@@ -132,6 +134,20 @@ export default function ProfileDashboard() {
     totalWage: "Total Wage",
     wageGenerated: "Wage Generated",
     rateType: "Rate Type",
+  };
+
+  const InputForRole = {
+    "Singaporean/Permanent Resident": [
+      "nricFront",
+      "nricBack",
+      "finFront",
+      "finBack",
+      "selfie",
+      "foodHygieneCert",
+    ],
+    "Long Term Visit Pass Holder": ["plocImage", "selfie", "foodHygieneCert"],
+    "Student Pass": ["studentCard", "foodHygieneCert", "selfie"],
+    "No Valid Work Pass": ["selfie", "foodHygieneCert"],
   };
 
   useEffect(() => {
@@ -289,38 +305,42 @@ export default function ProfileDashboard() {
                     </div>
 
                     {/* Render as image if it's NRIC front/back */}
-                    {["nricFront", "nricBack"].includes(key) && value !== "N/A" ? (
-                      <a href={value} target="_blank" rel="noopener noreferrer">
-                        <img
-                          src={
-                            value.includes("drive.google.com")
-                              ? `https://drive.google.com/uc?export=view&id=${value
-                                .split("/d/")[1]
-                                ?.split("/")[0]}`
-                              : value // fallback to direct URL (like Cloudinary)
-                          }
-                          alt={`${key}`}
-                          className="w-40 h-auto border rounded-lg"
-                        />
-                      </a>
-                    ) : key === "foodHygineCert" ? (
-                      <div className="flex items-center gap-3 p-2 rounded-lg bg-[#FFF4E5] w-fit">
-                        <Image className="w-6 h-6" />
-                        <p className="text-[16px] leading-[24px] font-normal text-[#000000]">
-                          {value}
-                        </p>
-                      </div>
-                    ) : (
-                      <p className="text-[16px] leading-[24px] font-normal text-[#000000]">
-                        {value}
-                      </p>
-                    )}
+                    <p className="text-[16px] leading-[24px] font-normal text-[#000000]">
+                      {value}
+                    </p>
+                  </div>
+                ))}
+              </div>
 
+            
+
+              <h3 className="text-xl font-semibold mb-4">Documents</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {InputForRole[
+                  userData?.candidateProfile?.employmentStatus
+                ]?.map((doc, index) => (
+                  <div
+                    key={index}
+                    className="flex flex-col items-center bg-white rounded-lg shadow-md p-4"
+                  >
+                    <img
+                      src={userData?.candidateProfile[doc]}
+                      alt={`${doc} preview`}
+                      className="w-full h-40 object-contain rounded-md mb-2 border border-gray-200"
+                    />
+                    <p className="text-sm text-gray-700 font-medium text-center break-words">
+                      {doc}
+                    </p>
                   </div>
                 ))}
               </div>
             </div>
           </div>
+
+
+            {/* overview table */}
+            <OverViewTable/>
+
 
           {/* Stats Section */}
           <div className="bg-white rounded-3xl py-8 px-12 shadow-sm border border-gray-200 z-10">
