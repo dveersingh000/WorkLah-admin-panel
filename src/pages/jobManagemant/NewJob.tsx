@@ -26,6 +26,7 @@ interface JobFormData {
   dates: { day: number; month: number; year: number }[];
   location: string;
   industry: string;
+  shortAddress: string;
   shifts: any[]; // Update `any` with a more specific type if known
   requirements: {
     jobScopeDescription: string;
@@ -89,6 +90,7 @@ export default function NewJob() {
     dates: [getTodayDate()], // Array of selected dates
     location: "",
     industry: "",
+    shortAddress: "",
     shifts: [],
     requirements: {
       jobScopeDescription: "",
@@ -158,21 +160,6 @@ export default function NewJob() {
 
     fetchOutlets();
   }, []);
-
-  // const companies = [
-  //   {
-  //     value: "hotel",
-  //     label: "RIGHT SERVICE PTE. LTD.",
-  //     image: "/assets/company.png",
-  //   },
-  //   {
-  //     value: "restaurant",
-  //     label: "Tech Solutions Pvt. Ltd.",
-  //     image: "/assets/company.png",
-  //   },
-  //   { value: "retail", label: "Company 2", image: "/assets/company.png" },
-  //   { value: "healthcare", label: "Company 3", image: "/assets/company.png" },
-  // ];
 
   const handleCompanyOptionSelect = (value: string) => {
     const selectedCompany = companies.find((option) => option.value === value);
@@ -333,6 +320,7 @@ export default function NewJob() {
         date: formattedDate,
         location: formData.location,
         industry: formData.industry || "Hotel",
+        shortAddress: formData.shortAddress,
         jobScope: formData.requirements.jobScopeDescription.split(", "),
         jobRequirements: formData.requirements.jobRequirements.split(", "),
         shifts: formattedShifts,
@@ -669,6 +657,21 @@ export default function NewJob() {
                   onChange={handleInputChange}
                   className="flex-1 border-none p-0 focus:outline-none"
                   required
+                />
+                <button className="p-2 hover:bg-gray-100 rounded-lg">
+                  <Pencil className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Short Address</label>
+              <div className="flex-1 flex items-center gap-2 px-3 py-2 border rounded-lg">
+                <input
+                  type="text"
+                  name="shortAddress"
+                  value={formData.shortAddress}
+                  onChange={handleInputChange}
+                  className="flex-1 border-none p-0 focus:outline-none"
                 />
                 <button className="p-2 hover:bg-gray-100 rounded-lg">
                   <Pencil className="w-4 h-4" />

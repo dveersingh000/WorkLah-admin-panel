@@ -22,6 +22,7 @@ import { BiDuplicate } from "react-icons/bi";
 import JobFilter from "../components/Filter/JobFilter";
 import JobEmployerFilter from "../components/Filter/JobEmployerFilter";
 import { convertIdToFourDigits, formatDate } from "../lib/utils";
+import UpcomingDeploymentTable from "./UpcomingDeploymentTable";
 
 interface Break {
   duration: string;
@@ -296,6 +297,7 @@ const JobManagement = () => {
 
     calculateStats();
   }, [jobsData]);
+  
 
   return (
     <div className="p-5 max-w-7xl mx-auto font-sans">
@@ -802,6 +804,7 @@ const JobManagement = () => {
             →
           </button>
         </div>
+        <UpcomingDeploymentTable />
       </div>
     </div>
   );
