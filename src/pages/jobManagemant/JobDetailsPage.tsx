@@ -34,6 +34,8 @@ const JobDetailsPage = () => {
   const [isLimitPopupOpen, setIsLimitPopupOpen] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
   const [outlet, setOutet] = useState(null);
+  const [applications, setApplications] = useState([]);
+
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -67,6 +69,7 @@ const JobDetailsPage = () => {
         setOutet(outletId)
         setJobsData(job);
         setShifts(job.shifts || []); // Ensure shifts are properly assigned
+        setApplications(response.data.applications || []);
       } else {
         console.error("Failed to fetch job details:", response.data);
       }
@@ -135,6 +138,16 @@ const JobDetailsPage = () => {
         return "bg-gray-100 text-gray-600";
     }
   };
+
+  const handleApplicationAction = async (appId, action) => {
+    try {
+      await axiosInstance.patch(`/admin/applications/${appId}`, { adminStatus: action });
+      fetchJobDetails(); // Refresh data
+    } catch (err) {
+      console.error(`Failed to ${action} application:`, err);
+    }
+  };
+  
 
   return (
     <div className="p-6 ">
@@ -498,8 +511,53 @@ const JobDetailsPage = () => {
           </tbody>
         </table>
       </div>
+      
 
       <CustomScrollbar scrollContainerRef={scrollContainerRef} totalSteps={3} />
+      {applications.length > 0 && (
+  <div className="mt-8">
+    <h2 className="text-xl font-semibold mb-4">Job Applications</h2>
+    <table className="table-auto w-full border border-collapse">
+      <thead className="bg-gray-100">
+        <tr>
+          <th className="p-3 border">Email</th>
+          <th className="p-3 border">Shift ID</th>
+          <th className="p-3 border">Date</th>
+          <th className="p-3 border">Status</th>
+          <th className="p-3 border">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {applications.map((app) => (
+          <tr key={app._id} className="border-b">
+            <td className="p-3 border">{app.userId.email}</td>
+            <td className="p-3 border">{convertIdToFourDigits(app.shiftId)}</td>
+            <td className="p-3 border">{formatDate(app.date)}</td>
+            <td className="p-3 border capitalize">{app.adminStatus}</td>
+            <td className="p-3 border">
+              {app.adminStatus === "applied" && (
+                <div className="flex gap-2">
+                  <button
+                    className="px-3 py-1 text-white bg-green-600 rounded hover:bg-green-700"
+                    onClick={() => handleApplicationAction(app._id, "approved")}
+                  >
+                    Approve
+                  </button>
+                  <button
+                    className="px-3 py-1 text-white bg-red-600 rounded hover:bg-red-700"
+                    onClick={() => handleApplicationAction(app._id, "rejected")}
+                  >
+                    Reject
+                  </button>
+                </div>
+              )}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+)}
 
       {/* Job Scope and Requirements */}
       <div className="mt-8 p-4">
