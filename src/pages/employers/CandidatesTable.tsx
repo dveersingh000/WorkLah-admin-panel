@@ -1,6 +1,6 @@
 import { ArrowLeft, Eye, MoreVertical, RotateCcw, Settings, View } from "lucide-react";
 import { useEffect, useState } from "react";
-import { FiCheck, FiEdit3 } from "react-icons/fi";
+import { FiCheck, FiEdit3, FiChevronDown } from "react-icons/fi";
 import { useNavigate, useParams } from "react-router-dom";
 import { axiosInstance } from "../../lib/authInstances";
 // import Image from "next/image"
@@ -9,6 +9,7 @@ interface Candidate {
   id: number;
   name: string;
   gender: string;
+  age: number;
   mobile: string;
   dob: string;
   nric: string;
@@ -23,79 +24,27 @@ interface Candidate {
   image: string;
 }
 
-// const candidates: Candidate[] = [
-//   {
-//     id: 1,
-//     name: "Ethan Carter",
-//     gender: "Male",
-//     mobile: "+65 9123 4567",
-//     dob: "04 Oct, 1999",
-//     nric: "XXXXXX4575",
-//     startTime: "11:00 AM",
-//     endTime: "03:00 PM",
-//     clockedIn: "11:05 AM",
-//     clockedOut: "03:00 PM",
-//     completedJobs: 122,
-//     status: "Confirmed",
-//     jobStatus: "Completed",
-//     wage: 72,
-//     image: "/assets/teamm1.svg",
-//   },
-//   {
-//     id: 2,
-//     name: "Liam Bennett",
-//     gender: "Male",
-//     mobile: "+65 9123 4567",
-//     dob: "04 Oct, 1999",
-//     nric: "XXXXXX4575",
-//     startTime: "11:00 AM",
-//     endTime: "03:00 PM",
-//     clockedIn: "11:10 AM",
-//     clockedOut: "02:50 PM",
-//     completedJobs: 122,
-//     status: "Confirmed",
-//     jobStatus: "Completed",
-//     wage: 69,
-//     image: "/assets/teamm2.svg",
-//   },
-//   {
-//     id: 3,
-//     name: "Ava Sullivan",
-//     gender: "Female",
-//     mobile: "+65 9123 4567",
-//     dob: "04 Oct, 1999",
-//     nric: "XXXXXX4575",
-//     startTime: "11:00 AM",
-//     endTime: "03:00 PM",
-//     clockedIn: "11:06 AM",
-//     clockedOut: "03:00 PM",
-//     completedJobs: 122,
-//     status: "Standby",
-//     jobStatus: "Completed",
-//     wage: 73,
-//     image: "/assets/teamm3.svg",
-//   },
-// ];
 
 export default function CandidateManagement() {
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [data, setData] = useState(null)
-  console.log("candidates", candidates)
-  const [activeTime, setActiveTime] = useState("11:00 AM");
+  const [activeTime, setActiveTime] = useState<string | null>(null);
   const [isPopupOpen, setIsPopupOpen] = useState<number | null>(null);
   const [isEditTime, setIsEditTime] = useState(false);
   const [loading, setLoading] = useState(true);
-    
+  const [statusFilter, setStatusFilter] = useState<"All" | "Confirmed" | "Pending">("All");
+
+
 
   const navigate = useNavigate()
-  const {jobId} = useParams()
+  const { jobId } = useParams()
   console.log(jobId)
 
-  useEffect(()=> {
+  useEffect(() => {
     const fetchCandidates = async () => {
       try {
         const response = await axiosInstance.get(`/admin/jobs/candidates/${jobId}`);
-        console.log("hello",response.data)
+        console.log("hello", response.data)
         setCandidates(response.data.candidates)
         setData(response.data)
       } catch (error) {
@@ -113,7 +62,7 @@ export default function CandidateManagement() {
     return <div className="text-center py-10">Loading candidates...</div>;
   }
 
-  
+
 
   const handleActionClick = (action: string, id: number) => {
     // alert(`Action: ${action}, Row: ${index}`);
@@ -125,6 +74,51 @@ export default function CandidateManagement() {
   const handlePopupToggle = (index: number) => {
     setIsPopupOpen(isPopupOpen === index ? null : index);
   };
+
+  const handleStatusSelection = (userId: string, newStatus: string) => {
+    if (newStatus === "Rejected") {
+      const reason = prompt("Enter reason for rejection:");
+      if (!reason) return; // Cancel if no reason
+      return handleApprovedStatusChange(userId, newStatus, reason);
+    }
+
+    const confirmed = window.confirm(`Are you sure you want to set status to ${newStatus}?`);
+    if (confirmed) {
+      handleApprovedStatusChange(userId, newStatus);
+    }
+  };
+
+  const handleApprovedStatusChange = async (
+    userId: string,
+    newStatus: string,
+    reason: string | null = null
+  ) => {
+    try {
+      await axiosInstance.put(`/admin/applications/status/${userId}`, {
+        status: newStatus,
+        jobId,
+        reason, // optional reason
+      });
+
+      console.log("Updating application for:", { userId, jobId, status: newStatus, reason });
+
+      setCandidates((prev) =>
+        prev.map((c) =>
+          c.id === userId ? { ...c, approvedStatus: newStatus } : c
+        )
+      );
+    } catch (err) {
+      console.error("Error updating approved status:", err);
+    }
+  };
+
+  const filteredCandidates = candidates.filter((candidate) => {
+    if (statusFilter === "All") return true;
+    return candidate.approvedStatus === statusFilter;
+  });
+  
+
+
   return (
     <div className="p-4 max-w-[1400px] mx-auto">
       <div className="flex items-center justify-between mb-6">
@@ -159,7 +153,7 @@ export default function CandidateManagement() {
                 Employer:
               </span>
               <span className="text-base font-semibold">
-              {data.job?.employer}
+                {data.job?.employer}
               </span>
             </div>
             <div className="flex gap-1">
@@ -168,6 +162,13 @@ export default function CandidateManagement() {
               </span>
               <span className="text-base font-semibold ">{data.job?.date}</span>
             </div>
+            <div className="flex gap-1">
+              <span className="text-base font-semibold text-[#4C4C4C]">
+              Current Headcounts:
+              </span>
+              <span className="text-base font-semibold">{data.job?.currentHeadCount}</span>
+            </div>
+
           </div>
         </div>
         <div>
@@ -178,33 +179,54 @@ export default function CandidateManagement() {
       </div>
 
       <div className="flex mb-6 gap-2">
-        <button className="px-4 py-2 text-base font-medium rounded-full bg-black text-white">
-          All Candidates ({data.totalCandidates})
-        </button>
-        <button className="px-4 py-2 text-base font-medium rounded-full bg-[#F4F4F4]">
-          Vacancy Candidates (6)
-        </button>
-        <button className="px-4 py-2 text-base font-medium rounded-full bg-[#F4F4F4]">
-          Standby Candidates ({data.standbyCount})
-        </button>
+  <button
+    onClick={() => setStatusFilter("All")}
+    className={`px-4 py-2 text-base font-medium rounded-full ${
+      statusFilter === "All" ? "bg-black text-white" : "bg-[#F4F4F4]"
+    }`}
+  >
+    All Candidates ({data.totalCandidates})
+  </button>
+  <button
+    onClick={() => setStatusFilter("Confirmed")}
+    className={`px-4 py-2 text-base font-medium rounded-full ${
+      statusFilter === "Confirmed" ? "bg-black text-white" : "bg-[#F4F4F4]"
+    }`}
+  >
+    Confirmed Candidates ({data.confirmedCount})
+  </button>
+  <button
+    onClick={() => setStatusFilter("Pending")}
+    className={`px-4 py-2 text-base font-medium rounded-full ${
+      statusFilter === "Pending" ? "bg-black text-white" : "bg-[#F4F4F4]"
+    }`}
+  >
+    Pending Candidates ({data.pendingCount})
+  </button>
+</div>
+
+
+      <div className="flex gap-2 mb-6 flex-wrap">
+        {Array.from(
+          new Set(
+            candidates
+              .filter((c) => c.shift?.startTime && c.shift?.endTime)
+              .map((c) => `${c.shift.startTime} - ${c.shift.endTime}`)
+          )
+        ).map((range) => (
+          <button
+            key={range}
+            className={`px-4 py-1 text-base font-medium border rounded-full ${activeTime === range
+                ? "bg-[#048BE1] text-white border-[#048BE1]"
+                : "text-black border-[#048BE1] hover:bg-gray-50"
+              }`}
+            onClick={() => setActiveTime(range)}
+          >
+            {range}
+          </button>
+        ))}
       </div>
 
-      <div className="flex gap-2 mb-6">
-  {Array.from(new Set(candidates.map((c) => c.shift?.startTime).filter(Boolean))).map((time) => (
-    <button
-      key={time}
-      className={`px-4 py-1 text-base font-medium border rounded-full 
-      ${
-        time === activeTime
-          ? "bg-[#048BE1] text-white border-[#048BE1]"
-          : "text-black border-[#048BE1] hover:bg-gray-50"
-      }`}
-      onClick={() => setActiveTime(time)} // Update activeTime on click
-    >
-      {time}
-    </button>
-  ))}
-</div>
 
 
       <div className="overflow-x-auto">
@@ -212,6 +234,9 @@ export default function CandidateManagement() {
           <thead>
             <tr className="border-b bg-gray-50">
               <th className="px-4 py-3 truncate capitalize tracking-wider text-center text-sm font-medium border text-gray-500"></th>
+              <th className="px-4 py-3 truncate capitalize tracking-wider text-center text-sm font-medium border text-gray-500">
+                Approved Status
+              </th>
               <th className="px-4 py-3 truncate capitalize tracking-wider text-center text-sm font-medium border text-gray-500">
                 Full Name
               </th>
@@ -222,17 +247,17 @@ export default function CandidateManagement() {
                 Mobile
               </th>
               <th className="px-4 py-3 truncate capitalize tracking-wider text-center text-sm font-medium border text-gray-500">
-                DOB
+                Age
               </th>
               <th className="px-4 py-3 truncate capitalize tracking-wider text-center text-sm font-medium border text-gray-500">
                 NRIC
               </th>
-              <th className="px-4 py-3 truncate capitalize tracking-wider text-center text-sm font-medium border text-gray-500">
+              {/* <th className="px-4 py-3 truncate capitalize tracking-wider text-center text-sm font-medium border text-gray-500">
                 Start Time
               </th>
               <th className="px-4 py-3 truncate capitalize tracking-wider text-center text-sm font-medium border text-gray-500">
                 End Time
-              </th>
+              </th> */}
               <th className="px-4 py-3 truncate capitalize tracking-wider text-center text-sm font-medium border text-gray-500">
                 Clocked In
               </th>
@@ -256,7 +281,8 @@ export default function CandidateManagement() {
           </thead>
 
           <tbody>
-            {candidates.map((candidate) => (
+            
+          {filteredCandidates.map((candidate) => (
               <tr key={candidate.id} className="border-b last:border-b-0 relative">
                 <td className="px-4 py-4 text-center truncate border text-[16px] leading-[20px] text-[#000000] font-medium">
                   <img
@@ -270,6 +296,26 @@ export default function CandidateManagement() {
                     }}
                   />
                 </td>
+                <td className="px-4 py-3 text-center border relative">
+                  <select
+                    value={candidate.approvedStatus}
+                    onChange={(e) =>
+                      handleStatusSelection(candidate.id, e.target.value)
+                    }
+                    className={`px-3 py-1 pr-6 rounded-full text-sm font-medium appearance-none w-full cursor-pointer ${candidate.approvedStatus === "Confirmed"
+                      ? "bg-green-100 text-green-700"
+                      : candidate.approvedStatus === "Pending"
+                        ? "bg-orange-100 text-orange-600"
+                        : "bg-gray-100 text-gray-700"
+                      }`}
+                  >
+                    <option value="Confirmed">Confirmed</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Rejected">Rejected</option>
+                  </select>
+                  <FiChevronDown className="absolute right-6 top-1/2 transform -translate-y-1/2 text-gray-600 pointer-events-none" />
+                </td>
+
                 <td className="px-4 py-3 text-center truncate border capitalize text-[16px] leading-[20px] text-[#000000] font-medium">
                   {candidate.fullName || "N/A"}
                 </td>
@@ -280,14 +326,14 @@ export default function CandidateManagement() {
                   {candidate.mobile || "N/A"}
                 </td>
                 <td className="px-4 py-3 text-center truncate border capitalize text-[16px] leading-[20px] text-[#000000] font-medium">
-                  {candidate.dob || "N/A"}
+                  {candidate.age || "N/A"}
                 </td>
                 <td className="px-4 py-3 text-center truncate border capitalize text-[16px] leading-[20px] text-[#000000] font-medium">
                   {candidate.nric || "N/A"}
                 </td>
-                <td className="px-4 py-3 text-center truncate border capitalize text-[16px] leading-[20px] text-[#000000] font-medium">
+                {/* <td className="px-4 py-3 text-center truncate border capitalize text-[16px] leading-[20px] text-[#000000] font-medium">
                   <span className="px-2 py-1 bg-[#048BE1] text-white rounded-full ">
-                  {candidate.shift?.startTime || "N/A"}
+                    {candidate.shift?.startTime || "N/A"}
 
                   </span>
                 </td>
@@ -295,14 +341,13 @@ export default function CandidateManagement() {
                   <span className="px-2 py-1 bg-[#048BE1] text-white rounded-full ">
                     {candidate.shift?.endTime || "N/A"}
                   </span>
-                </td>
+                </td> */}
                 <td className="px-4 py-3 text-center truncate border capitalize text-[16px] leading-[20px] text-[#000000] font-medium">
                   <div className="flex items-center gap-1">
                     <div className="flex items-center gap-1 py-1 px-3 rounded-full border border-[#048BE1] w-fit">
                       <RotateCcw
-                        className={`text-white p-1 rounded-full ${
-                          isEditTime ? "bg-black" : "bg-[#CDCDCD]"
-                        } w-7 h-7`}
+                        className={`text-white p-1 rounded-full ${isEditTime ? "bg-black" : "bg-[#CDCDCD]"
+                          } w-7 h-7`}
                       />
                       {isEditTime ? (
                         <>
@@ -346,25 +391,24 @@ export default function CandidateManagement() {
                 </td>
                 <td className="px-4 py-3 text-center truncate border capitalize text-[16px] leading-[20px] text-[#000000] font-medium">
                   <span
-                    className={`py-0.5 px-3 rounded-full ${
-                      candidate.status === "Confirmed"
-                        ? "bg-[#DEFFDF] text-[#049609]"
-                        : "bg-[#FFF7DC] text-[#D37700]"
-                    }`}
+                    className={`py-0.5 px-3 rounded-full ${candidate.status === "Confirmed"
+                      ? "bg-[#DEFFDF] text-[#049609]"
+                      : "bg-[#FFF7DC] text-[#D37700]"
+                      }`}
                   >
                     {candidate.confirmedOrStandby}
                   </span>
                 </td>
                 <td className="px-4 py-3 text-center truncate border capitalize text-[16px] leading-[20px] text-[#000000] font-medium">
                   <span className="bg-[#E0F3FF] text-[#0099FF] px-3 py-0.5 rounded-full">
-                  {data.job?.jobStatus}
+                    {data.job?.jobStatus}
                   </span>
                 </td>
                 <td className="px-4 py-3 text-center truncate border capitalize text-[16px] leading-[20px] text-[#000000] font-medium relative">
                   <div className="flex flex-col">
                     <span>{candidate.shift?.wageGenerated}</span>
                     <span className="text-xs text-gray-500">
-                    {candidate.shift?.totalDuration} ({candidate.shift?.breakType} Break)
+                      {candidate.shift?.totalDuration} ({candidate.shift?.breakType} Break)
                     </span>
                   </div>
                 </td>
@@ -374,16 +418,16 @@ export default function CandidateManagement() {
                       <MoreVertical className="h-4 w-4" />
                     </button>
                     {isPopupOpen === candidate.id && (
-                    <div className="absolute top-[40%] right-12 mt-1 w-40 bg-white shadow-md border border-gray-300 rounded-md z-10">
-                      <button
-                        className="flex items-center gap-2 p-2 w-full text-left text-gray-700 hover:bg-gray-100"
-                        onClick={() => handleActionClick("View Candidate", candidate.id)}
-                      >
-                        <Eye size={16} />
-                        View Candidate
-                      </button>
-                    </div>
-                  )}
+                      <div className="absolute top-[40%] right-12 mt-1 w-40 bg-white shadow-md border border-gray-300 rounded-md z-10">
+                        <button
+                          className="flex items-center gap-2 p-2 w-full text-left text-gray-700 hover:bg-gray-100"
+                          onClick={() => handleActionClick("View Candidate", candidate.id)}
+                        >
+                          <Eye size={16} />
+                          View Candidate
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </td>
               </tr>

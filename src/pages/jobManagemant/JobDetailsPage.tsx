@@ -22,7 +22,7 @@ import { convertIdToFourDigits, formatDate } from "../../lib/utils";
 import OutletFilter from "../../components/Filter/OutletFilter";
 
 const JobDetailsPage = () => {
-  
+
   const maxStandby = 1;
   const maxVacancy = 3;
   const [isPopupOpen, setIsPopupOpen] = useState<number | null>(null);
@@ -30,11 +30,10 @@ const JobDetailsPage = () => {
   const navigate = useNavigate();
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
   const [jobsData, setJobsData] = useState({});
-  const [shifts, setShifts] = useState( []);
+  const [shifts, setShifts] = useState([]);
   const [isLimitPopupOpen, setIsLimitPopupOpen] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
   const [outlet, setOutet] = useState(null);
-  const [applications, setApplications] = useState([]);
 
 
   useEffect(() => {
@@ -61,7 +60,7 @@ const JobDetailsPage = () => {
   const fetchJobDetails = async () => {
     try {
       const response = await axiosInstance.get(`/admin/jobs/${jobId}`);
-      
+
       if (response.data.success) {
         console.log("mew 6666", response.data.job)
         const job = response.data.job; // Extract the job object
@@ -69,7 +68,6 @@ const JobDetailsPage = () => {
         setOutet(outletId)
         setJobsData(job);
         setShifts(job.shifts || []); // Ensure shifts are properly assigned
-        setApplications(response.data.applications || []);
       } else {
         console.error("Failed to fetch job details:", response.data);
       }
@@ -77,7 +75,7 @@ const JobDetailsPage = () => {
       console.error("Error fetching job details:", error);
     }
   };
-  
+
   console.log(jobsData);
   console.log(jobId);
   useEffect(() => {
@@ -139,15 +137,6 @@ const JobDetailsPage = () => {
     }
   };
 
-  const handleApplicationAction = async (appId, action) => {
-    try {
-      await axiosInstance.patch(`/admin/applications/${appId}`, { adminStatus: action });
-      fetchJobDetails(); // Refresh data
-    } catch (err) {
-      console.error(`Failed to ${action} application:`, err);
-    }
-  };
-  
 
   return (
     <div className="p-6 ">
@@ -185,23 +174,23 @@ const JobDetailsPage = () => {
                         >
                           <FaCaretDown className="w-7 h-7 " />
 
-                       
+
                         </button>
                         <div className="flex flex-col gap3">
-                            <img
-                              src="/assets/dominos-logo.svg"
-                              alt="tray logo"
-                              className="w-24 h-8 mr-4"
-                            />
-                            <p>{jobsData.location}</p>
-                          </div>
+                          <img
+                            src="/assets/dominos-logo.svg"
+                            alt="tray logo"
+                            className="w-24 h-8 mr-4"
+                          />
+                          <p>{jobsData.location}</p>
+                        </div>
 
                         {isLimitPopupOpen && (
                           <div
                             ref={popupRef}
                             className="absolute right-[35%] top-[12%] mt-2 bg-white border rounded-[20px] shadow-lg z-50"
                           >
-                           <OutletFilter />
+                            <OutletFilter />
                           </div>
                         )}
                       </div>
@@ -271,22 +260,22 @@ const JobDetailsPage = () => {
                   </li>
                   {/* Block Candidate */}
                   <li>
-  <button
-    className="flex items-center w-full px-4 py-2 text-sm text-[#941F15] hover:bg-red-100"
-    onClick={async () => {
-      try {
-        await axiosInstance.delete(`/admin/jobs/${jobId}`);
-        navigate(-1); // Go back one page after successful cancellation
-      } catch (error) {
-        console.error("Error cancelling job:", error);
-        // Optionally, show toast or alert here
-      }
-    }}
-  >
-    <Ban className="w-4 h-4 mr-2 text-red-500" />
-    Cancel Job
-  </button>
-</li>
+                    <button
+                      className="flex items-center w-full px-4 py-2 text-sm text-[#941F15] hover:bg-red-100"
+                      onClick={async () => {
+                        try {
+                          await axiosInstance.delete(`/admin/jobs/${jobId}`);
+                          navigate(-1); // Go back one page after successful cancellation
+                        } catch (error) {
+                          console.error("Error cancelling job:", error);
+                          // Optionally, show toast or alert here
+                        }
+                      }}
+                    >
+                      <Ban className="w-4 h-4 mr-2 text-red-500" />
+                      Cancel Job
+                    </button>
+                  </li>
 
                 </ul>
               </div>
@@ -310,7 +299,7 @@ const JobDetailsPage = () => {
                 <div className="flex items-center gap-2">
                   <MapPin className="w-6 h-6 " />
                   <p className="font-normal text-[#000000] text-[16px] leading-[20px]">
-                  {jobsData.shortAddress}
+                    {jobsData.shortAddress}
                   </p>
                 </div>
                 {/* <p className="text-[12px] text-[#0099FF] leading-[18px] font-normal underline">
@@ -408,16 +397,16 @@ const JobDetailsPage = () => {
                 </td>
                 <td className="p-4 text-center text-[16px] leading-[20px] truncate font-medium  border-r border-[#C6C6C6]">
                   <span className="bg-[#048BE1] text-white px-3 py-2 text-center rounded-full">
-                  {/* {shift.startTime}:{shift.startTime.minutes}{" "}
+                    {/* {shift.startTime}:{shift.startTime.minutes}{" "}
                   {shift.startTime.period} */}
-                  {shift.startTime}
+                    {shift.startTime}
                   </span>
                 </td>
                 <td className="p-4 text-center text-[16px] leading-[20px] truncate font-medium  border-x border-[#C6C6C6]">
                   <span className="bg-[#048BE1] text-white px-3 py-2 text-center rounded-full">
-                  {/* {shift.endTime.hours}:{shift.endTime.minutes}{" "}
+                    {/* {shift.endTime.hours}:{shift.endTime.minutes}{" "}
                   {shift.endTime.period} */}
-                  {shift.endTime}
+                    {shift.endTime}
                   </span>
                 </td>
                 <td className="p-4 text-center text-[16px] leading-[20px] truncate font-medium  border-x border-[#C6C6C6]">
@@ -432,7 +421,7 @@ const JobDetailsPage = () => {
                       <Minus className="w-5 h-5" />
                     </button>
                     <p>
-                      {shift.vacancy> 0 ? shift.vacancy : "_"}/
+                      {shift.vacancy > 0 ? shift.vacancy : "_"}/
                       {maxVacancy}
                     </p>
 
@@ -482,11 +471,10 @@ const JobDetailsPage = () => {
                 </td>
                 <td className="p-4 text-center text-[16px] leading-[20px] truncate font-medium  border-x border-[#C6C6C6]">
                   <p
-                    className={`${
-                      shift.breakType === "Paid"
+                    className={`${shift.breakType === "Paid"
                         ? "text-[#049609]"
                         : "text-[#E34E30]"
-                    }`}
+                      }`}
                   >
                     {shift.breakType}
                   </p>
@@ -499,9 +487,8 @@ const JobDetailsPage = () => {
                 </td>
                 <td className="p-4 text-center text-[16px] leading-[20px] truncate font-medium  border-x border-[#C6C6C6]">
                   <p
-                    className={`px-2 py-1 rounded-full ${
-                      getStatusColor(jobsData.jobStatus)
-                    } `}
+                    className={`px-2 py-1 rounded-full ${getStatusColor(jobsData.jobStatus)
+                      } `}
                   >
                     {jobsData.jobStatus}
                   </p>
@@ -511,53 +498,9 @@ const JobDetailsPage = () => {
           </tbody>
         </table>
       </div>
-      
+
 
       <CustomScrollbar scrollContainerRef={scrollContainerRef} totalSteps={3} />
-      {applications.length > 0 && (
-  <div className="mt-8">
-    <h2 className="text-xl font-semibold mb-4">Job Applications</h2>
-    <table className="table-auto w-full border border-collapse">
-      <thead className="bg-gray-100">
-        <tr>
-          <th className="p-3 border">Email</th>
-          <th className="p-3 border">Shift ID</th>
-          <th className="p-3 border">Date</th>
-          <th className="p-3 border">Status</th>
-          <th className="p-3 border">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {applications.map((app) => (
-          <tr key={app._id} className="border-b">
-            <td className="p-3 border">{app.userId.email}</td>
-            <td className="p-3 border">{convertIdToFourDigits(app.shiftId)}</td>
-            <td className="p-3 border">{formatDate(app.date)}</td>
-            <td className="p-3 border capitalize">{app.adminStatus}</td>
-            <td className="p-3 border">
-              {app.adminStatus === "applied" && (
-                <div className="flex gap-2">
-                  <button
-                    className="px-3 py-1 text-white bg-green-600 rounded hover:bg-green-700"
-                    onClick={() => handleApplicationAction(app._id, "approved")}
-                  >
-                    Approve
-                  </button>
-                  <button
-                    className="px-3 py-1 text-white bg-red-600 rounded hover:bg-red-700"
-                    onClick={() => handleApplicationAction(app._id, "rejected")}
-                  >
-                    Reject
-                  </button>
-                </div>
-              )}
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-)}
 
       {/* Job Scope and Requirements */}
       <div className="mt-8 p-4">
@@ -635,12 +578,12 @@ const JobDetailsPage = () => {
               penaltyValue >= 50
                 ? "text-[#941F15]" // Darkest red for $50 or more
                 : penaltyValue >= 15
-                ? "text-[#941F15]" // Dark red for $15 or more
-                : penaltyValue >= 10
-                ? "text-[#BB2F23]" // Bold red for $10
-                : penaltyValue >= 5
-                ? "text-[#D14236]" // Light red for $5
-                : "text-[#797979]";
+                  ? "text-[#941F15]" // Dark red for $15 or more
+                  : penaltyValue >= 10
+                    ? "text-[#BB2F23]" // Bold red for $10
+                    : penaltyValue >= 5
+                      ? "text-[#D14236]" // Light red for $5
+                      : "text-[#797979]";
 
             return (
               <div key={index} className="flex items-center justify-between">
