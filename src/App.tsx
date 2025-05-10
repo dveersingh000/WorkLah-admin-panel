@@ -47,7 +47,7 @@ const AppContent: React.FC = () => {
           <Route path="employers/add-employer" element={<AddEmployer />} />
           <Route path="employers/:id/outletDetails" element={<OutletDetail />} />
           <Route path="employers/:id" element={<ActiveJobPosting id={""} />} />
-          <Route path="employers/add-employer" element={<AddEmployer />} />
+          <Route path="employers/add-employer" element={<AddEmployer />} />
 
           <Route path="hustle-heroes" element={<HustleHeroesList />} />
           <Route path="payments" element={<EmployeePayments />} />
