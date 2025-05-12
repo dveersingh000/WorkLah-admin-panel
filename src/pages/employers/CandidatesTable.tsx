@@ -113,9 +113,17 @@ export default function CandidateManagement() {
   };
 
   const filteredCandidates = candidates.filter((candidate) => {
-    if (statusFilter === "All") return true;
-    return candidate.approvedStatus === statusFilter;
-  });
+  const shiftRange = `${candidate.shift?.startTime} - ${candidate.shift?.endTime}`;
+
+  const matchesStatus =
+    statusFilter === "All" || candidate.approvedStatus === statusFilter;
+
+  const matchesTime =
+    !activeTime || shiftRange === activeTime;
+
+  return matchesStatus && matchesTime;
+});
+
   
 
 

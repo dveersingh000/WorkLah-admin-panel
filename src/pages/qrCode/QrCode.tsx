@@ -99,26 +99,31 @@ const QRCodeManagement: React.FC = () => {
         </table>
       </div>
 
-      {/* QR Code Details Card (Updates When Row is Clicked) */}
-      <div className="mt-6 bg-white p-4 shadow-md rounded-lg w-96 mx-auto">
-        <div className="flex justify-center mb-4" ref={qrRef}>
-          <QRCodeCanvas value={JSON.stringify(selectedEmployee)} size={150} />
-        </div>
-        <p className="text-center font-semibold">{selectedEmployee.name}</p>
-        <p className="text-center text-gray-600">Industry: {selectedEmployee.industry}</p>
-        <p className="text-center text-gray-600">Date: {selectedEmployee.jobDate}</p>
-        <p className="text-center text-gray-600">Shifts: {selectedEmployee.shifts}</p>
-        <p className="text-center text-gray-600">First Shift: {selectedEmployee.firstShift}</p>
-        <p className="text-center text-gray-600">Job Status: {selectedEmployee.jobStatus}</p>
-        
-        {/* Button to download QR code */}
-        <button
-          className="mt-4 bg-blue-500 text-white w-full py-2 rounded hover:bg-blue-600"
-          onClick={downloadQRCode}
-        >
-          Download QR
-        </button>
-      </div>
+      {/* Updated QR Code Details Card */}
+<div className="mt-6 bg-white p-4 shadow-md rounded-lg w-96 mx-auto">
+  <div className="flex justify-center mb-4" ref={qrRef}>
+    <QRCodeCanvas
+      value={JSON.stringify({
+        id: selectedEmployee.id,
+        employer: selectedEmployee.name,
+        outlet: selectedEmployee.outlet,
+        status: selectedEmployee.qrStatus,
+      })}
+      size={150}
+    />
+  </div>
+  <p className="text-center font-semibold">{selectedEmployee.name}</p>
+  <p className="text-center text-gray-600">Outlet: {selectedEmployee.outlet}</p>
+  <p className="text-center text-gray-600">QR Status: {selectedEmployee.qrStatus}</p>
+
+  <button
+    className="mt-4 bg-blue-500 text-white w-full py-2 rounded hover:bg-blue-600"
+    onClick={downloadQRCode}
+  >
+    Print QR
+  </button>
+</div>
+
     </div>
   );
 };
