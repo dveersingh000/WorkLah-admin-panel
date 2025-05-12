@@ -29,7 +29,7 @@ const QRCodeManagement: React.FC = () => {
 
   // State to track selected employee
   const [selectedEmployee, setSelectedEmployee] = useState(employees[0]);
-  
+
   // Ref for the QR Code
   const qrRef = useRef<HTMLDivElement>(null);
 
@@ -71,9 +71,8 @@ const QRCodeManagement: React.FC = () => {
               return (
                 <tr
                   key={employee.id}
-                  className={`text-center cursor-pointer ${
-                    selectedEmployee.id === employee.id ? "bg-gray-200" : ""
-                  }`}
+                  className={`text-center cursor-pointer ${selectedEmployee.id === employee.id ? "bg-gray-200" : ""
+                    }`}
                   onClick={() => setSelectedEmployee(employee)}
                 >
                   <td className="border p-2">#{employee.id}</td>
@@ -86,9 +85,8 @@ const QRCodeManagement: React.FC = () => {
                   <td className="border p-2">{employee.jobDate}</td>
                   <td className="border p-2">{employee.firstShift}</td>
                   <td
-                    className={`border p-2 ${
-                      employee.jobStatus === "Active" ? "text-green-500" : "text-orange-500"
-                    }`}
+                    className={`border p-2 ${employee.jobStatus === "Active" ? "text-green-500" : "text-orange-500"
+                      }`}
                   >
                     {employee.jobStatus}
                   </td>
@@ -100,29 +98,29 @@ const QRCodeManagement: React.FC = () => {
       </div>
 
       {/* Updated QR Code Details Card */}
-<div className="mt-6 bg-white p-4 shadow-md rounded-lg w-96 mx-auto">
-  <div className="flex justify-center mb-4" ref={qrRef}>
-    <QRCodeCanvas
-      value={JSON.stringify({
-        id: selectedEmployee.id,
-        employer: selectedEmployee.name,
-        outlet: selectedEmployee.outlet,
-        status: selectedEmployee.qrStatus,
-      })}
-      size={150}
-    />
-  </div>
-  <p className="text-center font-semibold">{selectedEmployee.name}</p>
-  <p className="text-center text-gray-600">Outlet: {selectedEmployee.outlet}</p>
-  <p className="text-center text-gray-600">QR Status: {selectedEmployee.qrStatus}</p>
+      <div className="mt-6 bg-white p-4 shadow-md rounded-lg w-96 mx-auto">
+        <div className="flex justify-center mb-4" ref={qrRef}>
+          <QRCodeCanvas
+            value={JSON.stringify({
+              id: selectedEmployee.id,
+              employer: selectedEmployee.name,
+              outlet: selectedEmployee.outlet,
+              status: selectedEmployee.qrStatus,
+            })}
+            size={150}
+          />
+        </div>
+        <p className="text-center font-semibold">{selectedEmployee.name}</p>
+        <p className="text-center text-gray-600">Outlet: {selectedEmployee.outlet}</p>
+        <p className="text-center text-gray-600">QR Status: {selectedEmployee.qrStatus}</p>
 
-  <button
-    className="mt-4 bg-blue-500 text-white w-full py-2 rounded hover:bg-blue-600"
-    onClick={downloadQRCode}
-  >
-    Print QR
-  </button>
-</div>
+        <button
+          className="mt-4 bg-blue-500 text-white w-full py-2 rounded hover:bg-blue-600"
+          onClick={downloadQRCode}
+        >
+          Print QR
+        </button>
+      </div>
 
     </div>
   );
