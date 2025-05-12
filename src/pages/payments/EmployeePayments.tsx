@@ -6,14 +6,22 @@ import Payments from "../../components/payments/Payments";
 import WithDrawals from "../../components/payments/WithDrawals";
 import axios from "axios";
 import PaymentFilters from "../../components/Filter/PaymentFilters";
+import Servicereport from "../../components/payments/sevicereport";
+import SalesReport from "../../components/payments/salesreport";
+import Invoicereport from "../../components/payments/invoice";
 
 export default function EmployeePayments() {
   const [activeTab, setActiveTab] = useState("payments");
+  const [workerClientTab, setWorkerClientTab] = useState("workers")
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [isLimitPopupOpen, setIsLimitPopupOpen] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
+  const [activeClientTab, setActiveClientTab] = useState("serviceReport")
+
+  console.log(activeClientTab)
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -67,66 +75,124 @@ export default function EmployeePayments() {
             Payments & Transactions
           </h2>
         </div>
-        <div className="flex justify-between border-b border-gray-400">
-          <div className="flex items-center space-x-4">
-            <button className="h-auto px-5 py-1 text-sm font-medium bg-black rounded-md text-[#fff] hover:text-[#fff] border-b-2 border-transparent hover:border-[#333333]">
+
+
+
+
+
+        <div className="flex justify-between items-center mb-4 border-b border-gray-300">
+          {/* Tab Buttons */}
+          <div className="flex gap-2">
+            <button
+              onClick={() => setWorkerClientTab("workers")}
+              className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${workerClientTab === "workers"
+                ? "bg-[#0070F3] text-white"
+                : "text-gray-600 hover:text-gray-900"
+                }`}
+            >
               Workers
             </button>
-            <button className="h-auto px-5 py-1 text-sm font-medium bg-gray-300 rounded-md text-[black] hover:text-[black] border-b-2 border-transparent hover:border-[#333333]">
+            <button
+              onClick={() => setWorkerClientTab("clients")}
+              className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${workerClientTab === "clients"
+                ? "bg-[#0070F3] text-white"
+                : "text-gray-600 hover:text-gray-900"
+                }`}
+            >
               Clients
             </button>
           </div>
-          <div className="p-4">
-            <div>
-              <div className="flex items-center justify-end gap-4">
-                <button className="p-[14px] rounded-[26px] shadow-lg bg-dark hover:bg-slate-950" onClick={() => setIsLimitPopupOpen(!isLimitPopupOpen)}>
-                  <Filter
-                    className="w-[20px] h-[20px]"
-                    color="#FFFFFF"
-                    fill="#ffffff"
-                  />
-                </button>
 
-                {isLimitPopupOpen && (
-                  <div
-                    ref={popupRef}
-                    className="absolute right-[10%] top-[12%] mt-2 w-[25%] bg-white border rounded-[20px] shadow-lg  z-50"
-                  >
-                    <PaymentFilters />
-                  </div>
-                )}
+          {/* Filter Button */}
+          <div className="relative">
+            <button
+              className="p-3 rounded-full bg-gray-700 hover:bg-gray-900 shadow-md transition-transform hover:scale-105"
+              onClick={() => setIsLimitPopupOpen(!isLimitPopupOpen)}
+            >
+              <Filter size={20} color="#FFFFFF" />
+            </button>
+            {isLimitPopupOpen && (
+              <div
+                ref={popupRef}
+                className="absolute right-0 mt-2 w-64 bg-white border rounded-lg shadow-md z-50"
+              >
+                <PaymentFilters />
               </div>
-            </div>
+            )}
           </div>
         </div>
 
-        <div className="flex space-x-4">
-          <button
-            className={`px-4 py-2 text-sm font-medium rounded-md ${
-              activeTab === "payments"
-                ? "bg-[#0070F3] text-white"
-                : "text-[#666666] hover:text-[#333333]"
-            }`}
-            onClick={() => setActiveTab("payments")}
-          >
-            Payments
-          </button>
-          <button
-            className={`px-4 py-2 text-sm font-medium rounded-md ${
-              activeTab === "withdrawals"
-                ? "bg-[#0070F3] text-white"
-                : "text-[#666666] hover:text-[#333333]"
-            }`}
-            onClick={() => setActiveTab("withdrawals")}
-          >
-            Withdrawals
-          </button>
-        </div>
 
-        <div className="mt-4">
-          {activeTab === "payments" && <Payments />}
-          {activeTab === "withdrawals" && <WithDrawals />}
-        </div>
+        {
+          workerClientTab === "workers" ? <>
+            <div className="flex space-x-4">
+              <button
+                className={`px-4 py-2 text-sm font-medium rounded-md ${activeTab === "payments"
+                  ? "bg-[#0070F3] text-white"
+                  : "text-[#666666] hover:text-[#333333]"
+                  }`}
+                onClick={() => setActiveTab("payments")}
+              >
+                Payments
+              </button>
+              <button
+                className={`px-4 py-2 text-sm font-medium rounded-md ${activeTab === "withdrawals"
+                  ? "bg-[#0070F3] text-white"
+                  : "text-[#666666] hover:text-[#333333]"
+                  }`}
+                onClick={() => setActiveTab("withdrawals")}
+              >
+                Withdrawals
+              </button>
+            </div>
+            <div className="mt-4">
+              {activeTab === "payments" && <Payments />}
+              {activeTab === "withdrawals" && <WithDrawals />}
+            </div>
+          </> : <>
+
+            <div className="flex space-x-4">
+              <button
+                className={`px-4 py-2 text-sm font-medium rounded-md ${activeClientTab === "serviceReport"
+                  ? "bg-[#0070F3] text-white"
+                  : "text-[#666666] hover:text-[#333333]"
+                  }`}
+                onClick={() => setActiveClientTab("serviceReport")}
+              >
+                Service Reports
+              </button>
+              <button
+                className={`px-4 py-2 text-sm font-medium rounded-md ${activeClientTab === "salesReport"
+                  ? "bg-[#0070F3] text-white"
+                  : "text-[#666666] hover:text-[#333333]"
+                  }`}
+                onClick={() => setActiveClientTab("salesReport")}
+              >
+                Sales Report
+              </button>
+
+              <button
+                className={`px-4 py-2 text-sm font-medium rounded-md ${activeClientTab === "invoice"
+                  ? "bg-[#0070F3] text-white"
+                  : "text-[#666666] hover:text-[#333333]"
+                  }`}
+                onClick={() => setActiveClientTab("invoice")}
+              >
+                Invoice
+              </button>
+            </div>
+
+            <div className="mt-4">
+              {activeClientTab === "serviceReport" && <Servicereport />}
+              {activeClientTab === "salesReport" && <SalesReport />}
+              {activeClientTab === "invoice" && <Invoicereport />}
+
+            </div>
+          </>
+        }
+
+
+
       </div>
     </div>
   );

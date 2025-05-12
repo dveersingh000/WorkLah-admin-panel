@@ -29,7 +29,7 @@ import { FiEdit3 } from "react-icons/fi";
 import { FaHandHoldingWater } from "react-icons/fa";
 import { TbUserHexagon } from "react-icons/tb";
 
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import JobHistory from "../../components/employerDetail/JobHistory";
 import WorkHistory from "../../components/employerDetail/WorkHistory";
 import { axiosInstance } from "../../lib/authInstances";
@@ -46,8 +46,8 @@ interface PersonalDetails {
   paynowNum: string;
   foodHygineCert: string;
   icNumber: string;
-  nricFront: string;
-  nricBack: string;
+  // nricFront: string;
+  // nricBack: string;
 }
 
 interface ActiveJobs {
@@ -63,7 +63,33 @@ interface ActiveJobs {
   rateType: string;
 }
 
+
+export interface Employee {
+  id: string;
+  fullName: string;
+  avatarUrl: string;
+  gender: string;
+  mobile: string;
+  // nric: string;
+  icNumber: string;
+  dob: string;
+  registrationDate: string;
+  turnUpRate: string;
+  workingHours: string;
+  avgAttendRate: string;
+  workPassStatus: "Verified" | "Approved" | "Pending" | "Rejected";
+  profilePicture?: string;
+}
+
 export default function ProfileDashboard() {
+
+
+
+  const location=useLocation();
+
+  let employeeId=location.pathname.split('/').pop();
+
+  const [employees, setEmployees] = useState<Employee[]>([]);
   const { id } = useParams();
   const [userData, setUserData] = useState<any>(null);
   console.log("userData", userData);
@@ -89,8 +115,8 @@ export default function ProfileDashboard() {
     // foodHygineCert:
     //   userData?.candidateProfile?.personalDetails?.foodHygieneCert || "N/A",
     icNumber: userData?.candidateProfile?.personalDetails?.icNumber || "N/A",
-    nricFront: userData?.candidateProfile?.personalDetails?.nricFront || "N/A",
-    nricBack: userData?.candidateProfile?.personalDetails?.nricBack || "N/A",
+    //nricFront: userData?.candidateProfile?.personalDetails?.nricFront || "N/A",
+    //nricBack: userData?.candidateProfile?.personalDetails?.nricBack || "N/A",
   };
 
   const activeJobs: ActiveJobs = {
@@ -119,8 +145,8 @@ export default function ProfileDashboard() {
     race: "Race",
     foodHygineCert: "Food & Hygiene cert.",
     icNumber: "IC number",
-    nricFront: "Nric Front",
-    nricBack: "Nric Back",
+    // nricFront: "Nric Front",
+    // nricBack: "Nric Back",
   };
 
   const customLablesActiveJobs: Record<string, string> = {
@@ -173,8 +199,8 @@ export default function ProfileDashboard() {
         return <MdOutlineDateRange className="w-6 h-6 text-[#048BE1]" />;
       case "gender":
         return <TbGenderGenderfluid className="w-6 h-6 text-[#048BE1]" />;
-      case "nric":
-        return <FaRegIdCard className="w-5 h-5 text-[#048BE1]" />;
+      // case "nric":
+      //   return <FaRegIdCard className="w-5 h-5 text-[#048BE1]" />;
       case "nationality":
         return <MdOutlineOutlinedFlag className="w-7 h-7 text-[#048BE1]" />;
       case "race":
@@ -185,14 +211,54 @@ export default function ProfileDashboard() {
         return <FaHandHoldingWater className="w-6 h-6 text-[#048BE1] " />;
       case "icNumber":
         return <TbUserHexagon className="w-6 h-6 text-[#048BE1]" />;
-      case "nricFront":
-        return <TbUserHexagon className="w-6 h-6 text-[#048BE1]" />;
-      case "nricBack":
-        return <TbUserHexagon className="w-6 h-6 text-[#048BE1]" />;
+      // case "nricFront":
+      //   return <TbUserHexagon className="w-6 h-6 text-[#048BE1]" />;
+      // case "nricBack":
+      //   return <TbUserHexagon className="w-6 h-6 text-[#048BE1]" />;
       default:
         return null;
     }
   };
+
+   const [rejectReasons, setRejectReasons] = useState<{ [key: string]: string }>(
+      {}
+    );
+
+    const [showRejectReasonId, setShowRejectReasonId] = useState<string | null>(
+        null
+      );
+
+
+   const handleVerifyAction = (action: "Approve" | "Reject", id: string) => {
+      if (action === "Reject" && !rejectReasons[id]) {
+        alert("Please enter a rejection reason.");
+        return;
+      }
+      axiosInstance
+        .put(`/admin/verify-candidate/${id}`, {
+          action: action === "Approve" ? "approve" : "reject",
+          rejectionReason: rejectReasons[id] || "",
+        })
+        .then(() => {
+          alert(`Candidate ${action}d`);
+          setEmployees((prev) =>
+            prev.map((emp) =>
+              emp.id === id
+                ? {
+                    ...emp,
+                    workPassStatus:
+                      action === "Approve" ? "Verified" : "Rejected",
+                  }
+                : emp
+            )
+          );
+          setShowRejectReasonId(null);
+        })
+        .catch((err) => {
+          console.error(err);
+          alert("Failed to update status.");
+        });
+    };
 
   return (
     <div className="min-h-screen bg-gray-100 pb-20">
@@ -271,9 +337,46 @@ export default function ProfileDashboard() {
                     Work pass status:{" "}
                     <span className="text-[#049609] text-[16px] leading-[24px] font-medium ml-2">
                       {" "}
-                      {userData?.candidateProfile?.workPassStatus || "N/A"}
+                      {userData?.candidateProfile?.employmentStatus || userData?.candidateProfile?.workPassStatus || "N/A"}
                     </span>
                   </p>
+                  <div className="flex flex-col gap-2">
+                    <button
+                      className="bg-green-100 text-green-700 px-3 py-1 rounded hover:bg-green-200"
+                      onClick={() => handleVerifyAction("Approve", employeeId)}
+                    >
+                      Approve
+                    </button>
+                    <button
+                      className="bg-red-100 text-red-700 px-3 py-1 rounded hover:bg-red-200"
+                      onClick={() => toggleRejectReason(employeeId)}
+                    >
+                      Reject
+                    </button>
+                    {showRejectReasonId === employeeId && (
+                      <>
+                        <textarea
+                          className="mt-2 p-2 border rounded w-full text-sm"
+                          placeholder="Enter rejection reason..."
+                          value={rejectReasons[employeeId] || ""}
+                          onChange={(e) =>
+                            setRejectReasons({
+                              ...rejectReasons,
+                              [employeeId]: e.target.value,
+                            })
+                          }
+                        />
+                        <button
+                          className="mt-2 bg-red-700 text-white px-3 py-1 rounded hover:bg-red-800"
+                          onClick={() =>
+                            handleVerifyAction("Reject", employeeId)
+                          } // Trigger reject action
+                        >
+                          Reject Candidate
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -297,9 +400,10 @@ export default function ProfileDashboard() {
                     <div key={key} className="flex items-start gap-3 my-3">
                       <div className="w-5 h-5 mt-0.5">{getIcon(key)}</div>
                       <div>
-                        <p className="text-[16px] font-medium leading-[24px] text-[#048BE1]">
+                      <p className="text-[16px] font-medium leading-[24px] text-[#048BE1]">
                           {customLabels[key] ||
-                            key.replace(/([A-Z])/g, " $1").trim()}
+                            key.replace(/([A-Z])/g, " $1").trim()
+                          }
                         </p>
                       </div>
                     </div>
@@ -339,7 +443,7 @@ export default function ProfileDashboard() {
 
 
             {/* overview table */}
-            <OverViewTable/>
+            {/* <OverViewTable/> */}
 
 
           {/* Stats Section */}
