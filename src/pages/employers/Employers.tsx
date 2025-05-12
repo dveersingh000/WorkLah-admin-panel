@@ -38,60 +38,60 @@ const EmployerTable: React.FC = () => {
   const [employers, setEmployers] = useState<Employer[]>([]);
   const [totalPages, setTotalPages] = useState(1);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+  // const scrollContainerRef = React.useRef<HTMLDivElement>(null);
 
   const navigate = useNavigate()
   const images = "https://worklah.onrender.com"
 
   // useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axiosInstance.get(`/employers?page=${currentPage}&limit=10`);
-  
-  
-        if (!response.data || !Array.isArray(response.data.employers)) {
-          throw new Error("Invalid API response format");
-        }
-  
-        const employerData = response.data.employers.map((employer: any) => ({
-          employerId: `#${employer._id.slice(-4)}`,
-          companyLogo: employer.companyLogo ? `${images}${employer.companyLogo}`: "/assets/company.png",
+  const fetchData = async () => {
+    try {
+      const response = await axiosInstance.get(`/employers?page=${currentPage}&limit=10`);
 
-          companyLegalName: employer.companyLegalName || employer.companyName,
-          hqAddress: employer.hqAddress,
-          mainContactPerson: employer.mainContactPersonName || "N/A", // Fix Key
-          mainContactPersonPosition: employer.mainContactPersonPosition || "N/A",
-          mainContactNumber: employer.mainContactPersonNumber || "N/A", // Fix Key
-          companyEmail: employer.companyEmail || "N/A",
-          companyNumber: employer.companyNumber || "N/A",
-          accountManager: employer.accountManager || "N/A",
-          industry: employer.industry || "N/A",
-          // outlets: employer.outlets || 0,
-          outlets: Array.isArray(employer.outlets) ? employer.outlets.length : 0, 
-          contractStartDate: employer.contractStartDate?.substring(0, 10) || "N/A",
-          contractEndDate: employer.contractEndDate?.substring(0, 10) || "N/A",
-          serviceAgreement: employer.serviceAgreement || "N/A",
-          employerOriginalId: employer._id
-        }));
-  
-  
-        setEmployers(employerData);
-        setTotalPages(response.data.totalPages || 1); // Ensure total pages updates correctly
-        setErrorMessage(null);
-      } catch (error) {
-        setErrorMessage("Failed to fetch employers. Please try again later.");
-        console.error("Error fetching employer data:", error);
+
+      if (!response.data || !Array.isArray(response.data.employers)) {
+        throw new Error("Invalid API response format");
       }
-    };
-  
+
+      const employerData = response.data.employers.map((employer: any) => ({
+        employerId: `#${employer._id.slice(-4)}`,
+        companyLogo: employer.companyLogo ? `${images}${employer.companyLogo}` : "/assets/company.png",
+
+        companyLegalName: employer.companyLegalName || employer.companyName,
+        hqAddress: employer.hqAddress,
+        mainContactPerson: employer.mainContactPersonName || "N/A", // Fix Key
+        mainContactPersonPosition: employer.mainContactPersonPosition || "N/A",
+        mainContactNumber: employer.mainContactPersonNumber || "N/A", // Fix Key
+        companyEmail: employer.companyEmail || "N/A",
+        companyNumber: employer.companyNumber || "N/A",
+        accountManager: employer.accountManager || "N/A",
+        industry: employer.industry || "N/A",
+        // outlets: employer.outlets || 0,
+        outlets: Array.isArray(employer.outlets) ? employer.outlets.length : 0,
+        contractStartDate: employer.contractStartDate?.substring(0, 10) || "N/A",
+        contractEndDate: employer.contractEndDate?.substring(0, 10) || "N/A",
+        serviceAgreement: employer.serviceAgreement || "N/A",
+        employerOriginalId: employer._id
+      }));
+
+
+      setEmployers(employerData);
+      setTotalPages(response.data.totalPages || 1); // Ensure total pages updates correctly
+      setErrorMessage(null);
+    } catch (error) {
+      setErrorMessage("Failed to fetch employers. Please try again later.");
+      console.error("Error fetching employer data:", error);
+    }
+  };
+
   //   fetchData();
   // }, [currentPage]);
 
   useEffect(() => {
     fetchData();
   }, [currentPage]);
-  
-  
+
+
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -111,12 +111,12 @@ const EmployerTable: React.FC = () => {
   const handleDelete = async (id: string) => {
     const confirmDelete = window.confirm("Are you sure you want to delete this employer?");
     if (!confirmDelete) return;
-  
+
     try {
       await axiosInstance.delete(`/employers/${id}`);
-      
+
       setEmployers((prevEmployers) => prevEmployers.filter(emp => emp.employerId !== id));
-  
+
       alert("Employer deleted successfully!");
 
       fetchData();
@@ -125,7 +125,7 @@ const EmployerTable: React.FC = () => {
       alert("Failed to delete employer. Please try again.");
     }
   };
-  
+
 
   return (
     <div className="p-4 flex flex-col justify-between min-h-screen">
@@ -135,9 +135,9 @@ const EmployerTable: React.FC = () => {
 
           <div className="flex items-center gap-4 ">
             <Link to="/employers/add-employer">
-            <button className="p-[14px] rounded-[26px] shadow-lg bg-[#FFFFFF] hover:bg-gray-50 ">
-              <Plus className="w-[24px] h-[24px]" />
-            </button>
+              <button className="p-[14px] rounded-[26px] shadow-lg bg-[#FFFFFF] hover:bg-gray-50 ">
+                <Plus className="w-[24px] h-[24px]" />
+              </button>
             </Link>
             <button className="p-[14px] rounded-[26px] shadow-lg bg-dark hover:bg-slate-950 ">
               <Filter
@@ -148,8 +148,11 @@ const EmployerTable: React.FC = () => {
             </button>
           </div>
         </div>
-        <div className="w-full overflow-x-auto no-scrollbar" ref={scrollContainerRef}>
-          <table className="table-auto w-full border-collapse relative">
+        {/* <div className="w-full overflow-x-auto no-scrollbar" ref={scrollContainerRef}>
+          <table className="table-auto w-full border-collapse relative"> */}
+        <div className="overflow-x-auto">
+          <table className="min-w-full border-collapse relative">
+
             <thead>
               <tr className="bg-[#EDF8FF]">
                 <th className="py-2 px-4 border-x border-gray-300 text-center whitespace-nowrap rounded-l-full">
@@ -248,12 +251,12 @@ const EmployerTable: React.FC = () => {
                     className="border border-gray-300 py-2 px-4 text-center border-t-0 whitespace-nowrap w-max overflow-hidden text-ellipsis truncate-2"
                   >
                     <p className={`rounded-full text-center w-full ${employer.serviceAgreement === "Completed"
-                        ? "bg-[#DBF1FF] text-[#048BE1]"
-                        : employer.serviceAgreement === "In Discussion"
-                          ? "bg-[#DEFFDF] text-[#049609]"
-                          : employer.serviceAgreement === "Expired"
-                            ? "bg-[#FFECE8] text-[#E34E30]"
-                            : "text-black"
+                      ? "bg-[#DBF1FF] text-[#048BE1]"
+                      : employer.serviceAgreement === "In Discussion"
+                        ? "bg-[#DEFFDF] text-[#049609]"
+                        : employer.serviceAgreement === "Expired"
+                          ? "bg-[#FFECE8] text-[#E34E30]"
+                          : "text-black"
                       }`}>{employer.serviceAgreement}</p>
                   </td>
 
@@ -308,10 +311,10 @@ const EmployerTable: React.FC = () => {
             </tbody>
           </table>
         </div>
-        <CustomScrollbar
+        {/* <CustomScrollbar
           scrollContainerRef={scrollContainerRef}
           totalSteps={3}
-        />
+        /> */}
         {/* Pagination */}
         {/* <div className="flex justify-center items-center gap-2 mt-20">
           <button className="px-3 py-1 border border-gray-300 rounded-md bg-white hover:bg-gray-50">
@@ -348,14 +351,14 @@ const EmployerTable: React.FC = () => {
             →
           </button>
         </div> */}
-      
-      <div className="flex flex-col items-center justify-center bg-gray-50">
-        <Pagination
-          totalPages={totalPages} // Adjust the total pages
-          currentPage={currentPage}
-          onPageChange={handlePageChange}
-        />
-      </div>
+
+        <div className="flex flex-col items-center justify-center bg-gray-50">
+          <Pagination
+            totalPages={totalPages} // Adjust the total pages
+            currentPage={currentPage}
+            onPageChange={handlePageChange}
+          />
+        </div>
       </div>
     </div>
   );

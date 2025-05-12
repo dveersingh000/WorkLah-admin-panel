@@ -28,7 +28,7 @@ const JobDetailsPage = () => {
   const [isPopupOpen, setIsPopupOpen] = useState<number | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const navigate = useNavigate();
-  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+  // const scrollContainerRef = React.useRef<HTMLDivElement>(null);
   const [jobsData, setJobsData] = useState({});
   const [shifts, setShifts] = useState([]);
   const [isLimitPopupOpen, setIsLimitPopupOpen] = useState(false);
@@ -326,11 +326,14 @@ const JobDetailsPage = () => {
       </div>
 
       {/* Shifts Table */}
-      <div
+      {/* <div
         className="w-full overflow-x-auto no-scrollbar pt-8 pb-4"
         ref={scrollContainerRef}
       >
-        <table className="table-auto w-full border-collapse relative">
+        <table className="table-auto w-full border-collapse relative"> */}
+      <div className="overflow-x-auto">
+        <table className="min-w-full border-collapse relative">
+
           <thead className="p-4">
             <tr className="bg-[#EDF8FF]">
               <th className="p-4 text-center whitespace-nowrap rounded-l-full "></th>
@@ -472,8 +475,8 @@ const JobDetailsPage = () => {
                 <td className="p-4 text-center text-[16px] leading-[20px] truncate font-medium  border-x border-[#C6C6C6]">
                   <p
                     className={`${shift.breakType === "Paid"
-                        ? "text-[#049609]"
-                        : "text-[#E34E30]"
+                      ? "text-[#049609]"
+                      : "text-[#E34E30]"
                       }`}
                   >
                     {shift.breakType}
@@ -500,7 +503,7 @@ const JobDetailsPage = () => {
       </div>
 
 
-      <CustomScrollbar scrollContainerRef={scrollContainerRef} totalSteps={3} />
+      {/* <CustomScrollbar scrollContainerRef={scrollContainerRef} totalSteps={3} /> */}
 
       {/* Job Scope and Requirements */}
       <div className="mt-8 p-4">

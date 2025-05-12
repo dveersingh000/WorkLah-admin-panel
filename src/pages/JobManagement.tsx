@@ -86,6 +86,8 @@ const JobManagement = () => {
   const [selectedEmployers, setSelectedEmployers] = useState<Employer[]>([]);
   const [activeTab, setActiveTab] = useState("All Jobs")
   console.log("selectedEmployers", selectedEmployers);
+  const [showUpcomingTracking, setShowUpcomingTracking] = useState(false);
+
 
   const options = [
     // { label: "Most Recent Required", value: "mostRecent" },
@@ -150,7 +152,7 @@ const JobManagement = () => {
 
   const navigate = useNavigate();
 
-  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+  // const scrollContainerRef = React.useRef<HTMLDivElement>(null);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -297,7 +299,7 @@ const JobManagement = () => {
 
     calculateStats();
   }, [jobsData]);
-  
+
 
   return (
     <div className="p-5 max-w-7xl mx-auto font-sans">
@@ -503,7 +505,7 @@ const JobManagement = () => {
               onClick={() => {
                 setActiveTab(tab);
                 let newStatus = "";
-                
+
                 if (tab === "All Jobs") {
                   newStatus = ""; // no filter
                 } else if (tab === "Jobs-Today") {
@@ -515,17 +517,17 @@ const JobManagement = () => {
                 } else if (tab === "Cancelled") {
                   newStatus = "Cancelled";
                 }
-              
+
                 setQueryParams((prev) => ({
                   ...prev,
                   status: newStatus,
                   page: 1,
                 }));
               }}
-              
+
               className={`px-4 py-2 rounded-full text-sm font-medium transition ${activeTab === tab
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                 }`}
             >
               {tab}
@@ -535,11 +537,14 @@ const JobManagement = () => {
 
 
         {/* Jobs Table */}
-        <div
+        {/* <div
           ref={scrollContainerRef}
           className="w-full overflow-x-auto no-scrollbar"
         >
-          <table className="table-auto w-full border-collapse relative h-48">
+          <table className="table-auto w-full border-collapse relative h-48"> */}
+        <div className="overflow-x-auto">
+          <table className="min-w-full border-collapse relative">
+
             <thead>
               <tr className="bg-[#EDF8FF] ">
                 <th className="p-4 text-center text-sm truncate font-medium text-gray-500 whitespace-nowrap rounded-l-full">
@@ -765,10 +770,10 @@ const JobManagement = () => {
           </table>
         </div>
 
-        <CustomScrollbar
+        {/* <CustomScrollbar
           scrollContainerRef={scrollContainerRef}
           totalSteps={3}
-        />
+        /> */}
         {/* Pagination */}
         <div className="flex justify-center items-center gap-2 mt-6">
           <button
@@ -776,7 +781,7 @@ const JobManagement = () => {
             disabled={currentPage === 1}
             className="px-3 py-1 border border-gray-300 rounded-md bg-white hover:bg-gray-50 disabled:opacity-50"
           >
-            ←
+            ← Prev
           </button>
 
           {/* Dynamic page buttons */}
@@ -801,10 +806,25 @@ const JobManagement = () => {
             disabled={currentPage === totalPages}
             className="px-3 py-1 border border-gray-300 rounded-md bg-white hover:bg-gray-50 disabled:opacity-50"
           >
-            →
+            Next →
           </button>
         </div>
-        <UpcomingDeploymentTable />
+        <div className="flex justify-center items-center mt-10 mb-2">
+          <h2 className="text-xl font-semibold">Upcoming Deployment Tracking</h2>
+          <button
+            onClick={() => setShowUpcomingTracking((prev) => !prev)}
+            className="px-4 py-2 ml-10 text-sm font-medium bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            {showUpcomingTracking ? "Hide" : "Show"}
+          </button>
+        </div>
+
+        {showUpcomingTracking && (
+          <div className="mt-4">
+            <UpcomingDeploymentTable />
+          </div>
+        )}
+
       </div>
     </div>
   );

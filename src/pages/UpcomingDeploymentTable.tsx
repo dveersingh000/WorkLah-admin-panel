@@ -78,7 +78,7 @@ const UpcomingDeploymentTable = () => {
 
   return (
     <div className="p-6 bg-white rounded-xl shadow-md font-sans">
-      <h2 className="text-xl font-semibold mb-4">Upcoming Deployment Tracking</h2>
+      {/* <h2 className="text-xl font-semibold mb-4">Upcoming Deployment Tracking</h2> */}
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-4 mb-6">
@@ -117,6 +117,7 @@ const UpcomingDeploymentTable = () => {
                 <th className="p-3 text-left">Employer</th>
                 <th className="p-3 text-left">Job</th>
                 <th className="p-3 text-left">Outlet</th>
+                <th className="p-3 text-left">Job Date</th>
                 <th className="p-3 text-center text-red-500">RQST Jobs</th>
                 <th className="p-3 text-center text-green-600">Approved Jobs</th>
                 <th className="p-3 text-center text-purple-700">RQST Seats</th>
@@ -130,6 +131,16 @@ const UpcomingDeploymentTable = () => {
                   <td className="p-3">{row.employerName}</td>
                   <td className="p-3">{row.jobName}</td>
                   <td className="p-3">{row.outletName}</td>
+                  <td className="p-3 whitespace-nowrap">
+  {row.date
+    ? new Date(row.date).toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
+    : "N/A"}
+</td>
+
                   <td className="p-3 text-center">{row.requestedJobs}</td>
                   <td className="p-3 text-center">{row.approvedJobs}</td>
                   <td className="p-3 text-center">{row.requestedSeats}</td>

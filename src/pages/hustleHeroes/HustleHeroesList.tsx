@@ -40,7 +40,7 @@ export default function HustleHeroesList() {
   const [rejectReasons, setRejectReasons] = useState<{ [key: string]: string }>(
     {}
   );
-  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+  // const scrollContainerRef = React.useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -146,10 +146,10 @@ export default function HustleHeroesList() {
           prev.map((emp) =>
             emp.id === id
               ? {
-                  ...emp,
-                  workPassStatus:
-                    action === "Approve" ? "Verified" : "Rejected",
-                }
+                ...emp,
+                workPassStatus:
+                  action === "Approve" ? "Verified" : "Rejected",
+              }
               : emp
           )
         );
@@ -183,11 +183,14 @@ export default function HustleHeroesList() {
           </button>
         </div>
       </div>
-      <div
+      {/* <div
         ref={scrollContainerRef}
         className="w-full overflow-x-auto no-scrollbar"
       >
-        <table className="table-auto w-full border-collapse relative">
+        <table className="table-auto w-full border-collapse relative"> */}
+      <div className="overflow-x-auto">
+        <table className="min-w-full border-collapse relative">
+
           <thead>
             <tr className="bg-[#EDF8FF] ">
               <th className="p-4 text-center truncate border rounded-l-full">
@@ -257,8 +260,8 @@ export default function HustleHeroesList() {
                   {employee.gender === "Male"
                     ? "M"
                     : employee.gender === "Female"
-                    ? "F"
-                    : "N/A"}
+                      ? "F"
+                      : "N/A"}
                 </td>
                 <td className="p-4 truncate text-center border">
                   {employee.mobile}
@@ -330,45 +333,45 @@ export default function HustleHeroesList() {
                   </div>
                 </td>
                 <td className="p-4 truncate text-center border ">
-                <button className="inline-flex items-center rounded-md bg-gray-100 px-3 py-1 text-sm font-medium text-gray-600 hover:bg-gray-200">
-                  Action
-                  <MoreHorizontal className="ml-1 h-4 w-4" onClick={() => handlePopupToggle(index)} />
-                </button>
-                {isPopupOpen === index && (
-                      <div className="absolute top-[30%] right-12 mt-1 w-32 bg-white shadow-md border border-gray-300 rounded-md z-10">
-                        <button
-                          className="flex items-center gap-2 p-2 w-full text-left text-gray-700 hover:bg-gray-100"
-                          onClick={() => handleActionClick("View", employee.id)}
-                        >
-                          <Eye size={16} />
-                          View
-                        </button>
-                        <button
-                          className="flex items-center gap-2 p-2 w-full text-left text-gray-700 hover:bg-gray-100"
-                          onClick={() =>
-                            handleActionClick("Edit", employee.id)
-                          }
-                        >
-                          <Edit size={16} />
-                          Edit
-                        </button>
-                        <button
-                          className="flex items-center gap-2 p-2 w-full text-left text-[#E34E30] hover:bg-gray-100"
-                          onClick={() => handleActionClick("Block", String(index))}
-                        >
-                          <Ban size={16} color="#E34E30" />
-                          Block
-                        </button>
-                        
-                      </div>
-                    )}
-              </td>
+                  <button className="inline-flex items-center rounded-md bg-gray-100 px-3 py-1 text-sm font-medium text-gray-600 hover:bg-gray-200">
+                    Action
+                    <MoreHorizontal className="ml-1 h-4 w-4" onClick={() => handlePopupToggle(index)} />
+                  </button>
+                  {isPopupOpen === index && (
+                    <div className="absolute top-[30%] right-12 mt-1 w-32 bg-white shadow-md border border-gray-300 rounded-md z-10">
+                      <button
+                        className="flex items-center gap-2 p-2 w-full text-left text-gray-700 hover:bg-gray-100"
+                        onClick={() => handleActionClick("View", employee.id)}
+                      >
+                        <Eye size={16} />
+                        View
+                      </button>
+                      <button
+                        className="flex items-center gap-2 p-2 w-full text-left text-gray-700 hover:bg-gray-100"
+                        onClick={() =>
+                          handleActionClick("Edit", employee.id)
+                        }
+                      >
+                        <Edit size={16} />
+                        Edit
+                      </button>
+                      <button
+                        className="flex items-center gap-2 p-2 w-full text-left text-[#E34E30] hover:bg-gray-100"
+                        onClick={() => handleActionClick("Block", String(index))}
+                      >
+                        <Ban size={16} color="#E34E30" />
+                        Block
+                      </button>
+
+                    </div>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      <CustomScrollbar scrollContainerRef={scrollContainerRef} totalSteps={3} />
+      {/* <CustomScrollbar scrollContainerRef={scrollContainerRef} totalSteps={3} /> */}
     </div>
   );
 }
